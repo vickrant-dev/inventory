@@ -292,32 +292,34 @@ export default function App() {
             <div className="main-container">
                 {/* Add new inventory */}
                 <div className="add-information-container">
-                    <h1>Add New Barcode/Serial Number</h1>
+                    <h1>Enter Product Information 📄</h1>
                     <form onSubmit={handleSubmit}>
-                        <label>
-                            <p>Item</p>
-                            <input type="text" name='item' value={form.item} onChange={handleInputChange} />
-                        </label>
-                        <label>
-                            <p>Quantity</p>
-                            <input type="number" name='quantity' value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
-                        </label>
-                        <label>
-                            <p>Serial Number(s) (comma separated)</p>
-                            <input type="text" name='serialNumber' value={form.serialNumber} onChange={handleInputChange} />
-                        </label>
-                        <label>
-                            <p>Customer</p>
-                            <input type="text" name='customer' value={form.customer} onChange={handleInputChange} />
-                        </label>
-                        <label>
-                            <p>Invoice No</p>
-                            <input type="text" name='invoiceNo' value={form.invoiceNo} onChange={handleInputChange} />
-                        </label>
-                        <label>
-                            <p>Invoice Date</p>
-                            <input type="date" name='invoiceDate' value={form.invoiceDate} onChange={handleInputChange} />
-                        </label>
+                        <div className="input-container">
+                            <label>
+                                <p>Item</p>
+                                <input type="text" name='item' placeholder='Item name...' value={form.item} onChange={handleInputChange} />
+                            </label>
+                            <label>
+                                <p>Quantity</p>
+                                <input type="number" name='quantity' value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
+                            </label>
+                            <label>
+                                <p>Serial Number</p>
+                                <input type="text" name='serialNumber' value={form.serialNumber} placeholder='Serial number...' onChange={handleInputChange} />
+                            </label>
+                            <label>
+                                <p>Customer</p>
+                                <input type="text" name='customer' value={form.customer} placeholder='Customer...' onChange={handleInputChange} />
+                            </label>
+                            <label>
+                                <p>Invoice No</p>
+                                <input type="text" name='invoiceNo' value={form.invoiceNo} placeholder='Invoice number...' onChange={handleInputChange} />
+                            </label>
+                            <label>
+                                <p>Invoice Date</p>
+                                <input type="date" name='invoiceDate' value={form.invoiceDate} onChange={handleInputChange} />
+                            </label>
+                        </div>
                         <div className="submit-btn">
                             <button type='submit'>Add</button>
                         </div>
@@ -326,7 +328,7 @@ export default function App() {
 
                 {/* Lookup Function */}
                 <div className="lookup-container">
-                    <h1>Lookup Serial Number</h1>
+                    <h1>Lookup Serial Number 🔎</h1>
                     <input
                         type="text"
                         value={searchSerial}
@@ -335,7 +337,7 @@ export default function App() {
                     />
                     <button onClick={handleSearch}>Search</button>
                     {searchResult ? (
-                        <div>
+                        <div className='search-results'>
                             <h3>Details for {searchResult.serial_number}</h3>
                             <p><strong>Item:</strong> {searchResult.item}</p>
                             <p><strong>Customer:</strong> {searchResult.customer}</p>
@@ -343,12 +345,13 @@ export default function App() {
                             <p><strong>Invoice Date:</strong> {searchResult.invoice_date}</p>
                         </div>
                     ) : searchSerial && (
-                        <p>No result found for {searchSerial}</p>
+                        <p className='search-error'>No result found for {searchSerial}</p>
                     )}
                 </div>
 
                 {/* Display inventory */}
                 <div className="table-container">
+                    <h4>All Products 📦</h4>
                     <table border="1">
                         <thead>
                             <tr>
@@ -368,7 +371,7 @@ export default function App() {
                                     <td>{data.customer}</td>
                                     <td>{data.invoice_no}</td>
                                     <td>{data.invoice_date}</td>
-                                    <td><button onClick={() => deleteEntry(data.id)}>Delete</button></td>
+                                    <td><button className='del-btn' onClick={() => deleteEntry(data.id)}>Delete</button></td>
                                 </tr>
                             ))}
                         </tbody>
