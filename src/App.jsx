@@ -340,7 +340,7 @@ export default function App() {
                         <div className='search-results'>
                             <h3>Details for {searchResult.serial_number}</h3>
                             <p><strong>Item:</strong> {searchResult.item}</p>
-                            <p><strong>Customer:</strong> {searchResult.customer}</p>
+                            <p className="search-customer"><strong>Customer:</strong> {searchResult.customer}</p>
                             <p><strong>Invoice No:</strong> {searchResult.invoice_no}</p>
                             <p><strong>Invoice Date:</strong> {searchResult.invoice_date}</p>
                         </div>
