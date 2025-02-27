@@ -26,6 +26,7 @@
     align-items: center;
     flex-wrap: wrap;
     margin-bottom: 1rem;
+    overflow: hidden;
     gap: 1.5rem;
 }
 
