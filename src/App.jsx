@@ -252,15 +252,27 @@ export default function App() {
                 setInventory([...inventory, ...data]);
                 setForm({ item: '', serialNumber: '', customer: '', invoiceNo: '', invoiceDate: '' });
                 setQuantity(1);
+                alert(`Successfully added ${data.length} serial number(s).`);
             }
         } catch (error) {
             console.error('Submission Error:', error.message);
         }
     };
-
-    // Check handleSubmit code and backupLast50CSV
+    
+    // Check handleSubmit code and backupCSV
 
     const deleteEntry = async (id) => {
+
+        const entry = inventory.find(item => item.id === id);
+        if(!entry){
+            alert("Entry not found");
+            return;
+        }
+
+        const isConfirmed = window.confirm(`Are you sure you want to delete this entry?\n\nSerial number: ${entry.serial_number}\nCustomer: ${entry.customer}`);
+
+        if(!isConfirmed) return;
+
         const { error } = await supabase.from('inventory').delete().eq('id', id);
 
         if (error) {
@@ -289,20 +301,28 @@ export default function App() {
         }
     };
 
-    const backupLast50CSV = () => {
-        const last50Entries = inventory.slice(-50);
-        
-        let csvContent = "data:text/csv;charset=utf-8,";
-        csvContent += "Item,Serial Number,Customer,Invoice No,Invoice Date\n";  // CSV headers
+    const backupCSV = () => {
+        let numRows = parseInt(prompt(`Enter the number of rows to back up (max: ${inventory.length}):`), 10);
     
-        last50Entries.forEach(row => {
+        if (isNaN(numRows) || numRows <= 0) {
+            alert("Please enter a valid number.");
+            return;
+        }
+    
+        numRows = Math.min(numRows, inventory.length); // Ensure it doesn't exceed inventory length
+        const selectedEntries = inventory.slice(-numRows);
+    
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "Item,Serial Number,Customer,Invoice No,Invoice Date\n"; // CSV headers
+    
+        selectedEntries.forEach(row => {
             csvContent += `${row.item},${row.serial_number},${row.customer},${row.invoice_no},${row.invoice_date}\n`;
         });
     
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "inventory_backup.csv");
+        link.setAttribute("download", `inventory_backup_${numRows}_rows.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -375,7 +395,7 @@ export default function App() {
                     <h4>All Products 📦</h4>
                     <div className="tb-info-row">
                         <p className='total-products'>Total Entries: {inventory.length}</p>
-                        <button onClick={backupLast50CSV}>Backup (CSV)</button>
+                        <button onClick={backupCSV}>Backup (CSV)</button>
                     </div>
                     <table border="1">
                         <thead>
@@ -402,7 +422,6 @@ export default function App() {
                         </tbody>
                     </table>
                 </div>
-
             </div>
         </>
     );
