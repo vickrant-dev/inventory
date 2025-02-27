@@ -258,6 +258,8 @@ export default function App() {
         }
     };
 
+    // Check handleSubmit code and backupLast50CSV
+
     const deleteEntry = async (id) => {
         const { error } = await supabase.from('inventory').delete().eq('id', id);
 
@@ -285,6 +287,25 @@ export default function App() {
         } else {
             setSearchResult(data.length > 0 ? data[0] : null);
         }
+    };
+
+    const backupLast50CSV = () => {
+        const last50Entries = inventory.slice(-50);
+        
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "Item,Serial Number,Customer,Invoice No,Invoice Date\n";  // CSV headers
+    
+        last50Entries.forEach(row => {
+            csvContent += `${row.item},${row.serial_number},${row.customer},${row.invoice_no},${row.invoice_date}\n`;
+        });
+    
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "inventory_backup.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     return (
@@ -352,6 +373,10 @@ export default function App() {
                 {/* Display inventory */}
                 <div className="table-container">
                     <h4>All Products 📦</h4>
+                    <div className="tb-info-row">
+                        <p className='total-products'>Total Entries: {inventory.length}</p>
+                        <button onClick={backupLast50CSV}>Backup (CSV)</button>
+                    </div>
                     <table border="1">
                         <thead>
                             <tr>
@@ -364,7 +389,7 @@ export default function App() {
                             </tr>
                         </thead>
                         <tbody>
-                            {inventory.map((data) => (
+                            {inventory.slice(-25).map((data) => (
                                 <tr key={data.id}>
                                     <td>{data.item}</td>
                                     <td>{data.serial_number}</td>
@@ -377,6 +402,7 @@ export default function App() {
                         </tbody>
                     </table>
                 </div>
+
             </div>
         </>
     );

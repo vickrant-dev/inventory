@@ -161,6 +161,37 @@
     margin-bottom: 0.5rem;
 }
 
+.table-container .tb-info-row{
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.table-container .tb-info-row .total-products{
+    margin-bottom: .75rem;
+    color: hsl(151, 100%, 30%);
+    background-color: hsl(151, 100%, 80%);
+    font-weight: 500;
+    width: fit-content;
+    border-radius: 6px;
+    padding: 6px 10px;
+}
+
+.table-container .tb-info-row button{
+    margin-bottom: .75rem;
+    font-weight: 500;
+    width: fit-content;
+    border-radius: 6px;
+    padding: 6px 14px;
+    border: none;
+    outline: none;
+    font-weight: 500;
+    font-size: 15px;
+    background-color: #151515;
+    color: #f5f5f5;
+    cursor: pointer;
+}
+
 table {
     width: 100%;
     border-collapse: collapse; /* Removes gaps between borders */
@@ -199,7 +230,7 @@ tbody tr:hover {
 
 /* Delete Button Styling */
 .del-btn {
-    background-color: #ff4d4d;
+    background-color: hsl(0, 100%, 65%);
     color: white;
     border: none;
     padding: 5px 10px;
@@ -209,7 +240,11 @@ tbody tr:hover {
 }
 
 .del-btn:hover {
-    background-color: #cc0000;
+    background-color: hsl(0, 100%, 45%);
+}
+
+.del-btn:active{
+    background-color: hsl(0, 100%, 75%);
 }
 
 @media (max-width: 450px) {
