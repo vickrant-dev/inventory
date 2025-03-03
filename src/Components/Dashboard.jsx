@@ -234,27 +234,27 @@ export default function App() {
                     <form onSubmit={handleSubmit}>
                         <div className="input-container">
                             <label>
-                                <p>Item</p>
+                                <p>ITEM</p>
                                 <input type="text" name='item' placeholder='Item name...' value={form.item} onChange={handleInputChange} />
                             </label>
                             <label>
-                                <p>Quantity</p>
+                                <p>QUANTITY</p>
                                 <input type="number" name='quantity' value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
                             </label>
                             <label>
-                                <p>Serial Number</p>
+                                <p>SERIAL NUMBER</p>
                                 <input type="text" name='serialNumber' value={form.serialNumber} placeholder='Serial number...' onChange={handleInputChange} />
                             </label>
                             <label>
-                                <p>Customer</p>
+                                <p>CUSTOMER</p>
                                 <input type="text" name='customer' value={form.customer} placeholder='Customer...' onChange={handleInputChange} />
                             </label>
                             <label>
-                                <p>Invoice No</p>
+                                <p>INVOICE NO</p>
                                 <input type="text" name='invoiceNo' value={form.invoiceNo} placeholder='Invoice number...' onChange={handleInputChange} />
                             </label>
                             <label>
-                                <p>Invoice Date</p>
+                                <p>INVOICE DATE</p>
                                 <input type="date" name='invoiceDate' value={form.invoiceDate} onChange={handleInputChange} />
                             </label>
                         </div>
@@ -266,7 +266,7 @@ export default function App() {
 
                 {/* Lookup Function */}
                 <div className="lookup-container">
-                    <h1>Search For Your Serial Number 🔎</h1>
+                    <h1>SEARCH FOR YOUR SERIAL NUMBER 🔎</h1>
                     <input
                         type="text"
                         value={searchSerial}
@@ -306,7 +306,7 @@ export default function App() {
                             </tr>
                         </thead>
                         <tbody>
-                            {inventory.slice(-25).map((data) => (
+                            {inventory.slice(-60).map((data) => (
                                 <tr key={data.id}>
                                     <td>{data.item}</td>
                                     <td>{data.serial_number}</td>
