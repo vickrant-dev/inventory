@@ -16,7 +16,7 @@ export default function Login() {
     const handleLogin = (e) => {
         e.preventDefault();
 
-        if (username === C_username && password === C_password) {
+        if (username.trim() === C_username && password.trim() === C_password) {
             localStorage.setItem("isAuthenticated", "true");
             localStorage.setItem("loginTime", Date.now())
             navigate("/dashboard");
