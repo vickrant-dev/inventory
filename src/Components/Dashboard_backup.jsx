@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import '../App.css';
 import { useNavigate } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
@@ -20,9 +20,6 @@ export default function App() {
     const [quantity, setQuantity] = useState(1);
     const [searchSerial, setSearchSerial] = useState('');
     const [searchResult, setSearchResult] = useState(null);
-
-    const [dropDownData, setDropDownData] = useState({});
-    const [activeField, setActiveField] = useState(null);
 
     const navigate = useNavigate();
 
@@ -68,24 +65,7 @@ export default function App() {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setForm((prevForm) => ({ ...prevForm, [name]: value }));
-
-        if(name){
-            setActiveField(name);
-            const filteredResults = inventory
-                .map((item) => item[name])
-                .filter((val, index, self) => val && self.indexOf(val) === index) 
-                .filter(val => val.toLowerCase().includes(value.toLowerCase()))
-                .sort((a, b) => a.localeCompare(b));
-
-            setDropDownData({...dropDownData, [name]: filteredResults});
-        } // ⭐
-
     };
-
-    const handleSelectItem = (name, value) => {
-        setForm((prevForm) => ({...prevForm, [name]: value}));
-        setActiveField(null);
-    }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -162,7 +142,9 @@ export default function App() {
         } catch (error) {
             console.error('Submission Error:', error.message);
         }
-    }; // ⭐
+    };
+    
+    // Check handleSubmit code and backupCSV
 
     const deleteEntry = async (id) => {
 
@@ -229,7 +211,7 @@ export default function App() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-    }; // ⭐
+    };
 
     return (
         <>
@@ -250,78 +232,26 @@ export default function App() {
                     <h1>Enter Product Information 📄</h1>
                     <form onSubmit={handleSubmit}>
                         <div className="input-container">
-                            {["item"].map((field) => (
-                                <label>
-                                    <p>{field.toUpperCase()}</p>
-                                    <input type="text" name={field} placeholder={`${field.toUpperCase()}...`} value={form[field]} onChange={handleInputChange} onBlur={() => setTimeout(() => {
-                                        setActiveField(null)
-                                    }, 100)} />
-
-                                    {activeField === field && dropDownData[field]?.length > 0 && (
-                                        <ul className='dropdown'>
-                                            {dropDownData[field].slice(0, 5).map((item, index) => (
-                                                <li key={index} onClick={() => handleSelectItem(field, item)} >{item}</li>
-                                            ))}
-                                        </ul>
-                                    )}
-
-                                </label>
-                            ))}
+                            <label>
+                                <p>ITEM</p>
+                                <input type="text" name='item' placeholder='Item name...' value={form.item} onChange={handleInputChange} />
+                            </label>
                             <label>
                                 <p>QUANTITY</p>
                                 <input type="number" name='quantity' value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
                             </label>
-                            {["serialNumber"].map((field) => (
-                                <label>
-                                    <p>SERIAL NUMBER</p>
-                                    <input type="text" name={field} placeholder={`Serial Number...`} value={form[field]} onChange={handleInputChange} onBlur={() => setTimeout(() => {
-                                        setActiveField(null)
-                                    }, 100)} />
-
-                                    {activeField === field && dropDownData[field]?.length > 0 && (
-                                        <ul className='dropdown'>
-                                            {dropDownData[field].slice(0, 5).map((item, index) => (
-                                                <li key={index} onClick={() => handleSelectItem(field, item)} >{item}</li>
-                                            ))}
-                                        </ul>
-                                    )}
-
-                                </label>
-                            ))}  {/* Doesn't work */}
-                            {["customer"].map((field) => (
-                                <label>
-                                    <p>CUSTOMER NAME</p>
-                                    <input type="text" name={field} placeholder={`CUSTOMER NAME...`} value={form[field]} onChange={handleInputChange} onBlur={() => setTimeout(() => {
-                                        setActiveField(null)
-                                    }, 100)} />
-
-                                    {activeField === field && dropDownData[field]?.length > 0 && (
-                                        <ul className='dropdown'>
-                                            {dropDownData[field].slice(0, 5).map((item, index) => (
-                                                <li key={index} onClick={() => handleSelectItem(field, item)} >{item}</li>
-                                            ))}
-                                        </ul>
-                                    )}
-
-                                </label>
-                            ))}
-                            {["invoiceNo"].map((field) => (
-                                <label>
-                                    <p>INVOICE NO</p>
-                                    <input type="text" name={field} placeholder={`INVOICE NO...`} value={form[field]} onChange={handleInputChange} onBlur={() => setTimeout(() => {
-                                        setActiveField(null)
-                                    }, 100)} />
-
-                                    {activeField === field && dropDownData[field]?.length > 0 && (
-                                        <ul className='dropdown'>
-                                            {dropDownData[field].slice(0, 5).map((item, index) => (
-                                                <li key={index} onClick={() => handleSelectItem(field, item)} >{item}</li>
-                                            ))}
-                                        </ul>
-                                    )}
-
-                                </label>
-                            ))} {/* Doesn't work */}
+                            <label>
+                                <p>SERIAL NUMBER</p>
+                                <input type="text" name='serialNumber' value={form.serialNumber} placeholder='Serial number...' onChange={handleInputChange} />
+                            </label>
+                            <label>
+                                <p>CUSTOMER</p>
+                                <input type="text" name='customer' value={form.customer} placeholder='Customer...' onChange={handleInputChange} />
+                            </label>
+                            <label>
+                                <p>INVOICE NO</p>
+                                <input type="text" name='invoiceNo' value={form.invoiceNo} placeholder='Invoice number...' onChange={handleInputChange} />
+                            </label>
                             <label>
                                 <p>INVOICE DATE</p>
                                 <input type="date" name='invoiceDate' value={form.invoiceDate} onChange={handleInputChange} />
