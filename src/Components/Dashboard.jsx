@@ -72,10 +72,17 @@ export default function App() {
         if(name){
             setActiveField(name);
             const filteredResults = inventory
-                .map((item) => item[name])
-                .filter((val, index, self) => val && self.indexOf(val) === index) 
-                .filter(val => val.toLowerCase().includes(value.toLowerCase()))
-                .sort((a, b) => a.localeCompare(b));
+            .map((item) => item[name])
+            .filter((val, index, self) => val && self.indexOf(val) === index)
+            .filter(val => val.toLowerCase().includes(value.toLowerCase()))
+            .sort((a, b) => {
+                const aStartsWithInput = a.toLowerCase().startsWith(value.toLowerCase());
+                const bStartsWithInput = b.toLowerCase().startsWith(value.toLowerCase());
+
+                if (aStartsWithInput && !bStartsWithInput) return -1;
+                if (!aStartsWithInput && bStartsWithInput) return 1;
+                return a.localeCompare(b);
+            });
 
             setDropDownData({...dropDownData, [name]: filteredResults});
         } // ⭐
@@ -271,23 +278,10 @@ export default function App() {
                                 <p>QUANTITY</p>
                                 <input type="number" name='quantity' value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
                             </label>
-                            {["serialNumber"].map((field) => (
-                                <label>
-                                    <p>SERIAL NUMBER</p>
-                                    <input type="text" name={field} placeholder={`Serial Number...`} value={form[field]} onChange={handleInputChange} onBlur={() => setTimeout(() => {
-                                        setActiveField(null)
-                                    }, 100)} />
-
-                                    {activeField === field && dropDownData[field]?.length > 0 && (
-                                        <ul className='dropdown'>
-                                            {dropDownData[field].slice(0, 5).map((item, index) => (
-                                                <li key={index} onClick={() => handleSelectItem(field, item)} >{item}</li>
-                                            ))}
-                                        </ul>
-                                    )}
-
-                                </label>
-                            ))}  {/* Doesn't work */}
+                            <label>
+                                <p>SERIAL NUMBER</p>
+                                <input type="text" name='serialNumber' value={form.serialNumber} onChange={handleInputChange} placeholder='SERIAL NUMBER...' />
+                            </label>
                             {["customer"].map((field) => (
                                 <label>
                                     <p>CUSTOMER NAME</p>
@@ -305,23 +299,10 @@ export default function App() {
 
                                 </label>
                             ))}
-                            {["invoiceNo"].map((field) => (
-                                <label>
-                                    <p>INVOICE NO</p>
-                                    <input type="text" name={field} placeholder={`INVOICE NO...`} value={form[field]} onChange={handleInputChange} onBlur={() => setTimeout(() => {
-                                        setActiveField(null)
-                                    }, 100)} />
-
-                                    {activeField === field && dropDownData[field]?.length > 0 && (
-                                        <ul className='dropdown'>
-                                            {dropDownData[field].slice(0, 5).map((item, index) => (
-                                                <li key={index} onClick={() => handleSelectItem(field, item)} >{item}</li>
-                                            ))}
-                                        </ul>
-                                    )}
-
-                                </label>
-                            ))} {/* Doesn't work */}
+                             <label>
+                                <p>INVOICE NO</p>
+                                <input type="text" name='invoiceNo' placeholder='INVOICE NO...' value={form.invoiceNo} onChange={handleInputChange} />
+                            </label>
                             <label>
                                 <p>INVOICE DATE</p>
                                 <input type="date" name='invoiceDate' value={form.invoiceDate} onChange={handleInputChange} />
@@ -375,7 +356,7 @@ export default function App() {
                             </tr>
                         </thead>
                         <tbody>
-                            {inventory.slice(-60).map((data) => (
+                            {inventory.slice().sort((a, b) => new Date(b.invoice_date) - new Date(a.invoice_date) ).slice(0, 60).map((data) => (
                                 <tr key={data.id}>
                                     <td>{data.item}</td>
                                     <td>{data.serial_number}</td>
