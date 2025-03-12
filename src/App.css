@@ -339,6 +339,14 @@ body {
     gap: 0.5rem;
 }
 
+.table-container .tb-info-row #backupFormat{
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.6rem;
+    border-radius: 6px;
+    outline: none;
+}
+
 .table-container .tb-info-row button {
     margin: 0;
     font-weight: 600;
@@ -501,14 +509,14 @@ tbody tr:hover {
 
 .login-container .show-password input {
     position: relative;
-    margin-right: 0.5rem;
+    margin-right: 0.7rem;
     width: auto;
-    transform: scale(1.2);
+    transform: scale(1.2) translateY(10px);
     cursor: pointer;
 }
 
 .login-container .show-password span {
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: #4a5568;
 }
 

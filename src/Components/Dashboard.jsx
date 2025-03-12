@@ -213,19 +213,19 @@ export default function App() {
         }
     };
 
-    // const handleBackup = () => {
-    //     const format = document.getElementById("backupFormat").value;
-    //     switch (format) {
-    //         case "csv":
-    //             backupCSV();
-    //             break;
-    //         case "pdf":
-    //             backupPDF();
-    //             break;
-    //         default:
-    //             backupCSV();
-    //     }
-    // };
+    const handleBackup = () => {
+        const format = document.getElementById("backupFormat").value;
+        switch (format) {
+            case "csv":
+                backupCSV();
+                break;
+            case "pdf":
+                backupPDF();
+                break;
+            default:
+                backupCSV();
+        }
+    };
 
     const backupCSV = () => {
         let numRows = parseInt(prompt(`Enter the number of rows to back up (max: ${inventory.length}):`), 10);
@@ -410,7 +410,7 @@ export default function App() {
                             <option value="csv">CSV</option>
                             <option value="pdf">PDF</option>
                         </select>
-                        <button onClick={backupPDF}>Backup</button>
+                        <button onClick={handleBackup}>Backup</button>
                     </div>
                     <table border="1">
                         <thead>
