@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import '../App.css';
 import { useNavigate } from 'react-router-dom';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -211,6 +213,20 @@ export default function App() {
         }
     };
 
+    // const handleBackup = () => {
+    //     const format = document.getElementById("backupFormat").value;
+    //     switch (format) {
+    //         case "csv":
+    //             backupCSV();
+    //             break;
+    //         case "pdf":
+    //             backupPDF();
+    //             break;
+    //         default:
+    //             backupCSV();
+    //     }
+    // };
+
     const backupCSV = () => {
         let numRows = parseInt(prompt(`Enter the number of rows to back up (max: ${inventory.length}):`), 10);
     
@@ -220,7 +236,12 @@ export default function App() {
         }
     
         numRows = Math.min(numRows, inventory.length); // Ensure it doesn't exceed inventory length
-        const selectedEntries = inventory.slice(-numRows);
+        
+        const sortedInventory = inventory.slice().sort((a, b) => {
+            return new Date(b.invoice_date) - new Date(a.invoice_date);
+        })
+
+        const selectedEntries = sortedInventory.slice(0, numRows);
     
         let csvContent = "data:text/csv;charset=utf-8,";
         csvContent += "Item,Serial Number,Customer,Invoice No,Invoice Date\n"; // CSV headers
@@ -237,6 +258,49 @@ export default function App() {
         link.click();
         document.body.removeChild(link);
     }; // ⭐
+
+    const backupPDF = () => {
+        let numRows = parseInt(prompt(`Enter the number of rows to back up (max: ${inventory.length}):`), 10);
+    
+        if (isNaN(numRows) || numRows <= 0) {
+            alert("Please enter a valid number.");
+            return;
+        }
+    
+        numRows = Math.min(numRows, inventory.length);
+    
+        const sortedInventory = inventory.slice().sort((a, b) => {
+            return new Date(b.invoice_date) - new Date(a.invoice_date);
+        });
+    
+        const selectedEntries = sortedInventory.slice(0, numRows);
+    
+        const doc = new jsPDF();
+        let y = 20; 
+    
+        doc.setFontSize(12);
+        doc.text("Inventory Backup", 14, 10);
+        doc.line(10, 12, 200, 12);
+    
+        doc.text("Item", 10, y);
+        doc.text("Serial Number", 50, y);
+        doc.text("Customer", 100, y);
+        doc.text("Invoice No", 150, y);
+        doc.text("Invoice Date", 180, y);
+        
+        y += 10;
+    
+        selectedEntries.forEach(row => {
+            doc.text(row.item, 10, y);
+            doc.text(row.serial_number, 50, y);
+            doc.text(row.customer, 100, y);
+            doc.text(row.invoice_no, 150, y);
+            doc.text(row.invoice_date, 180, y);
+            y += 10;
+        });
+    
+        doc.save(`inventory_backup_${numRows}_rows.pdf`);
+    };
 
     return (
         <>
@@ -276,7 +340,7 @@ export default function App() {
                             ))}
                             <label>
                                 <p>QUANTITY</p>
-                                <input type="number" name='quantity' value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
+                                <input type="number" name='quantity' max={40} value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
                             </label>
                             <label>
                                 <p>SERIAL NUMBER</p>
@@ -342,7 +406,11 @@ export default function App() {
                     <h4>All Products 📦</h4>
                     <div className="tb-info-row">
                         <p className='total-products'>Total Entries: {inventory.length}</p>
-                        <button onClick={backupCSV}>Backup (CSV)</button>
+                        <select id="backupFormat">
+                            <option value="csv">CSV</option>
+                            <option value="pdf">PDF</option>
+                        </select>
+                        <button onClick={backupPDF}>Backup</button>
                     </div>
                     <table border="1">
                         <thead>

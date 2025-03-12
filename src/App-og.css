@@ -1,0 +1,429 @@
+.main-container{
+    margin: 1.5rem 2rem 2rem 2rem;
+}
+
+.main-container .user-container{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.main-container .user-container .left h1{
+    font-weight: 500;
+}
+
+.main-container .user-container .left h1 span{
+    font-weight: 600;
+}
+
+.main-container .user-container .right button{
+    display: flex;
+    align-items: center;
+    padding: 12px 22px;
+    border-radius: 6px;
+    outline: none;
+    border: none;
+    background-color: hsl(0, 95%, 65%);
+    color: #f8f8f8;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 150ms 0s ease;
+}
+
+.main-container .user-container .right button:hover{
+    background-color: hsl(0, 100%, 55%);
+    transition: all 150ms 0s ease;
+}
+
+.main-container .user-container .right button:active{
+    background-color: hsl(0, 100%, 75%);
+    transition: all 150ms 0s ease;
+}
+
+.main-container .add-information-container{
+    margin-top: 3.5rem;
+    margin-bottom: 2rem;
+}
+
+.main-container .add-information-container h1{
+    font-size: 22px;
+    margin-bottom: 1rem;
+}
+
+.main-container .add-information-container form{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border: 1px solid #808080;
+    padding: 24px;
+    border-radius: 20px;
+    background-color: rgba(66, 133, 244, 0.1);
+}
+
+.main-container .add-information-container form .input-container{
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    gap: 1.5rem;
+}
+
+.main-container .add-information-container form .input-container label p{
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.main-container .add-information-container form .input-container label input{
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    border: 1px solid #a5a5a5;
+    background-color: rgba(255, 255, 255, .5);
+    outline: none;
+    border-radius: 12px;
+    font-size: 15px;
+    position: relative;
+}
+
+.main-container .add-information-container form .input-container label .dropdown{
+    position: absolute;
+    list-style: none;
+    width: 100%;
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid hsl(0, 0%, 75%);
+    background: rgba(255, 255, 255, 1);
+    list-style: none;
+    width: 217px;
+    padding: 0;
+    margin: 0;
+    z-index: 10;
+}
+
+.main-container .add-information-container form .input-container label .dropdown li{
+    padding: 12px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid hsl(0, 0%, 85%);
+}
+
+.main-container .add-information-container form .input-container label .dropdown li:hover{
+    background-color: hsl(0, 0%, 95%);
+}
+
+.main-container .add-information-container form .input-container label input:focus{
+    border: 1px solid #151515;
+}
+
+
+.main-container .add-information-container form .submit-btn{
+    margin-top: 0.4rem;
+}
+
+.main-container .add-information-container form .submit-btn button{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 28px;
+    border: none;
+    outline: none;
+    background-color: hsl(217, 89%, 61%);
+    color: #f5f5f5;
+    font-weight: 600;
+    font-size: 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 150ms 0s ease;
+}
+
+.main-container .add-information-container form .submit-btn button:hover{
+    background-color: hsl(217, 89%, 51%);
+    transition: all 150ms 0s ease;
+}
+
+.main-container .add-information-container form .submit-btn button:active{
+    background-color: hsl(217, 89%, 71%);
+    transition: all 150ms 0s ease;
+}
+
+.main-container .lookup-container h1{
+    font-size: 22px;
+    margin-bottom: 1rem;
+}
+
+.main-container .lookup-container input{
+    padding: 14px 16px;
+    border: 1px solid #a5a5a5;
+    outline: none;
+    border-radius: 12px;
+    font-size: 15px;
+    margin-right: 1rem;
+    color: #151515;
+}
+
+.main-container .lookup-container button{
+    padding: 12px 24px;
+    border: none;
+    outline: none;
+    background-color: rgba(255, 119, 0, 0.85);
+    color: #f5f5f5;
+    font-weight: 600;
+    font-size: 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 150ms 0s ease;
+}
+
+.main-container .lookup-container button:hover{
+    background-color: rgba(255, 119, 0, 1);
+    transition: all 150ms 0s ease;
+}
+
+.main-container .lookup-container button:active{
+    background-color: rgba(255, 119, 0, 0.65);
+    transition: all 150ms 0s ease;
+}
+
+.main-container .lookup-container .search-results{
+    margin-top: 1rem;
+    border: 1px solid #808080;
+    padding: 24px;
+    border-radius: 20px;
+    background-color: rgba(255, 119, 0, 0.2);
+}
+
+.main-container .lookup-container .search-results h3{
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.main-container .lookup-container .search-results p{
+    font-size: 16px;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+}
+
+.main-container .lookup-container .search-results .search-customer{
+    color: #c40000;
+    font-weight: 600;
+}
+
+.main-container .lookup-container .search-error{
+    margin: 0.5rem 0;
+}
+
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin: 4rem 0 0 0;
+}
+
+.table-container h4{
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.table-container .tb-info-row{
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.table-container .tb-info-row .total-products{
+    margin-bottom: .75rem;
+    color: hsl(151, 100%, 30%);
+    background-color: hsl(151, 100%, 80%);
+    font-weight: 500;
+    width: fit-content;
+    border-radius: 6px;
+    padding: 6px 10px;
+}
+
+.table-container .tb-info-row button{
+    margin-bottom: .75rem;
+    font-weight: 500;
+    width: fit-content;
+    border-radius: 6px;
+    padding: 6px 14px;
+    border: none;
+    outline: none;
+    font-weight: 500;
+    font-size: 15px;
+    background-color: #151515;
+    color: #f5f5f5;
+    cursor: pointer;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse; /* Removes gaps between borders */
+    overflow: hidden;
+    font-size: 14px;
+}
+
+/* Table Header */
+thead {
+    background-color: #f1f1f1; /* Light gray header */
+    color: #333;
+    font-weight: bold;
+    text-align: left;
+}
+
+/* Header and Cell Borders */
+th, td {
+    border: 1px solid #d0d0d0;
+    padding: 8px 12px;
+}
+
+/* Alternating Row Colors */
+tbody tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #ffffff;
+}
+
+/* Hover Effect */
+tbody tr:hover {
+    background-color: #e6f7ff;
+    cursor: pointer;
+}
+
+/* Delete Button Styling */
+.del-btn {
+    background-color: hsl(0, 100%, 65%);
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.del-btn:hover {
+    background-color: hsl(0, 100%, 45%);
+}
+
+.del-btn:active{
+    background-color: hsl(0, 100%, 75%);
+}
+
+/* LOGIN JSX */
+.login-container{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+.login-container form{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 250px;
+}
+
+.login-container label p{
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.login-container label input{
+    display: flex;
+    padding: 12px 14px;
+    width: 100%;
+    outline: none;
+    border: 1px solid #a5a5a5;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+}
+
+.login-container label input.inputPass {
+    margin-bottom: 0.5rem;
+}
+
+.login-container .show-password {
+    margin-bottom: 1.5rem;
+}
+
+.login-container .show-password input{
+    position: absolute;
+    transform: translateY(6px) translateX(-116.5px) scale(1.2);
+    left: 0;
+}
+
+.login-container .show-password span{
+    position: relative;
+    margin-left: 1.25rem;
+    font-size: 15px;
+}
+
+.login-container button{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    outline: none;
+    background-color: #4285f4;
+    border-radius: 6px;
+    color: #f5f5f5;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+@media (max-width: 450px) {
+    .main-container .lookup-container button{
+        display: flex;
+        align-items: center;
+        margin-top: 1rem;
+    }
+}
+
+@media (max-width: 350px) {
+    .main-container {
+        margin: 2rem 1rem;
+    }
+    .main-container .add-information-container form .submit-btn {
+        width: 100%;
+    }
+    .main-container .add-information-container form .submit-btn button {
+        width: 100%;
+    }
+    .main-container .add-information-container form .input-container {
+        display: grid;
+        grid-template-columns: repeat(1, 1fr);
+        align-items: center;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+    .main-container .add-information-container form .input-container label input {
+        width: 100%;
+    }
+    .main-container .lookup-container input {
+        width: 100%;
+    }
+    .main-container .lookup-container button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+    .main-container .add-information-container h1 {
+        font-size: 20px;
+    }
+    .main-container .lookup-container h1 {
+        font-size: 20px;
+    }
+    .table-container h4 {
+        font-size: 20px;
+    }
+} 

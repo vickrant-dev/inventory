@@ -1,347 +1,492 @@
-.main-container{
-    margin: 1.5rem 2rem 2rem 2rem;
+/* Add a modern CSS reset and base styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-.main-container .user-container{
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    color: #1a1a2e;
+    background-color: #f8f9fa;
+    line-height: 1.5;
+}
+
+/* Main container styling */
+.main-container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+/* User container with welcome message and logout */
+.main-container .user-container {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-.main-container .user-container .left h1{
+.main-container .user-container .left h1 {
     font-weight: 500;
+    font-size: 1.75rem;
+    color: #2d3748;
 }
 
-.main-container .user-container .left h1 span{
-    font-weight: 600;
+.main-container .user-container .left h1 span {
+    font-weight: 700;
+    color: #4361ee;
 }
 
-.main-container .user-container .right button{
+.main-container .user-container .right button {
     display: flex;
     align-items: center;
-    padding: 12px 22px;
-    border-radius: 6px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
     outline: none;
     border: none;
-    background-color: hsl(0, 95%, 65%);
-    color: #f8f8f8;
+    background-color: #f72585;
+    color: white;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 150ms 0s ease;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 200ms ease;
+    box-shadow: 0 2px 10px rgba(247, 37, 133, 0.2);
 }
 
-.main-container .user-container .right button:hover{
-    background-color: hsl(0, 100%, 55%);
-    transition: all 150ms 0s ease;
+.main-container .user-container .right button:hover {
+    background-color: #e5116f;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(247, 37, 133, 0.3);
 }
 
-.main-container .user-container .right button:active{
-    background-color: hsl(0, 100%, 75%);
-    transition: all 150ms 0s ease;
+.main-container .user-container .right button:active {
+    background-color: #d10a63;
+    transform: translateY(1px);
+    box-shadow: 0 1px 5px rgba(247, 37, 133, 0.2);
 }
 
-.main-container .add-information-container{
-    margin-top: 3.5rem;
-    margin-bottom: 2rem;
+/* Add information container styling */
+.main-container .add-information-container {
+    margin-bottom: 3rem;
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    padding: 2rem;
 }
 
-.main-container .add-information-container h1{
-    font-size: 22px;
-    margin-bottom: 1rem;
+.main-container .add-information-container h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #2d3748;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.main-container .add-information-container form{
+.main-container .add-information-container form {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    border: 1px solid #808080;
-    padding: 24px;
-    border-radius: 20px;
-    background-color: rgba(66, 133, 244, 0.1);
+    border: none;
+    padding: 0;
+    border-radius: 0;
+    background-color: transparent;
 }
 
-.main-container .add-information-container form .input-container{
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    margin-bottom: 1rem;
-    overflow: hidden;
+.main-container .add-information-container form .input-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 1.5rem;
+    margin-bottom: 1.5rem;
 }
 
-.main-container .add-information-container form .input-container label p{
-    font-size: 16px;
-    font-weight: 500;
-    margin-bottom: 0.25rem;
+.main-container .add-information-container form .input-container label p {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #4a5568;
 }
 
-.main-container .add-information-container form .input-container label input{
-    display: flex;
-    align-items: center;
-    padding: 14px 16px;
-    border: 1px solid #a5a5a5;
-    background-color: rgba(255, 255, 255, .5);
+.main-container .add-information-container form .input-container label input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e2e8f0;
+    background-color: #f8fafc;
     outline: none;
-    border-radius: 12px;
-    font-size: 15px;
-    position: relative;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 200ms ease;
 }
 
-.main-container .add-information-container form .input-container label .dropdown{
+.main-container .add-information-container form .input-container label input:focus {
+    border-color: #4361ee;
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+    background-color: white;
+}
+
+.main-container .add-information-container form .input-container label .dropdown {
     position: absolute;
     list-style: none;
-    width: 100%;
-    max-height: 150px;
+    width: 288px;
+    max-height: 200px;
     overflow-y: auto;
-    border: 1px solid hsl(0, 0%, 75%);
-    background: rgba(255, 255, 255, 1);
-    list-style: none;
-    width: 217px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     padding: 0;
-    margin: 0;
+    margin-top: 4px;
     z-index: 10;
 }
 
-.main-container .add-information-container form .input-container label .dropdown li{
-    padding: 12px 14px;
+.main-container .add-information-container form .input-container label .dropdown li {
+    padding: 0.75rem 1rem;
     cursor: pointer;
-    border-bottom: 1px solid hsl(0, 0%, 85%);
+    border-bottom: 1px solid #f1f5f9;
+    transition: all 150ms ease;
 }
 
-.main-container .add-information-container form .input-container label .dropdown li:hover{
-    background-color: hsl(0, 0%, 95%);
+.main-container .add-information-container form .input-container label .dropdown li:hover {
+    background-color: #f1f5f9;
+    transition: all 150ms ease;
 }
 
-.main-container .add-information-container form .input-container label input:focus{
-    border: 1px solid #151515;
+.main-container .add-information-container form .input-container label .dropdown li:last-child {
+    border-bottom: none;
 }
 
-
-.main-container .add-information-container form .submit-btn{
-    margin-top: 0.4rem;
+.main-container .add-information-container form .submit-btn {
+    margin-top: 0.5rem;
 }
 
-.main-container .add-information-container form .submit-btn button{
+.main-container .add-information-container form .submit-btn button {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 12px 28px;
+    padding: 0.75rem 2rem;
     border: none;
     outline: none;
-    background-color: hsl(217, 89%, 61%);
-    color: #f5f5f5;
+    background-color: #4361ee;
+    color: white;
     font-weight: 600;
-    font-size: 16px;
-    border-radius: 6px;
+    font-size: 1rem;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 150ms 0s ease;
+    transition: all 200ms ease;
+    box-shadow: 0 2px 10px rgba(67, 97, 238, 0.2);
 }
 
-.main-container .add-information-container form .submit-btn button:hover{
-    background-color: hsl(217, 89%, 51%);
-    transition: all 150ms 0s ease;
+.main-container .add-information-container form .submit-btn button:hover {
+    background-color: #3a56d4;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
 }
 
-.main-container .add-information-container form .submit-btn button:active{
-    background-color: hsl(217, 89%, 71%);
-    transition: all 150ms 0s ease;
+.main-container .add-information-container form .submit-btn button:active {
+    background-color: #2e46c0;
+    transform: translateY(1px);
+    box-shadow: 0 1px 5px rgba(67, 97, 238, 0.2);
 }
 
-.main-container .lookup-container h1{
-    font-size: 22px;
-    margin-bottom: 1rem;
+/* Lookup container styling */
+.main-container .lookup-container {
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    padding: 2rem;
+    margin-bottom: 3rem;
 }
 
-.main-container .lookup-container input{
-    padding: 14px 16px;
-    border: 1px solid #a5a5a5;
+.main-container .lookup-container h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #2d3748;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.main-container .lookup-container input {
+    padding: 0.75rem 1rem;
+    border: 1px solid #e2e8f0;
+    background-color: #f8fafc;
     outline: none;
-    border-radius: 12px;
-    font-size: 15px;
+    border-radius: 8px;
+    font-size: 0.95rem;
     margin-right: 1rem;
-    color: #151515;
+    color: #1a1a2e;
+    transition: all 200ms ease;
+    width: 300px;
+    max-width: 100%;
 }
 
-.main-container .lookup-container button{
-    padding: 12px 24px;
+.main-container .lookup-container input:focus {
+    border-color: #ff9e00;
+    box-shadow: 0 0 0 3px rgba(255, 158, 0, 0.15);
+    background-color: white;
+}
+
+.main-container .lookup-container button {
+    padding: 0.75rem 1.5rem;
     border: none;
     outline: none;
-    background-color: rgba(255, 119, 0, 0.85);
-    color: #f5f5f5;
+    background-color: #ff9e00;
+    color: white;
     font-weight: 600;
-    font-size: 16px;
-    border-radius: 6px;
+    font-size: 0.95rem;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 150ms 0s ease;
+    transition: all 200ms ease;
+    box-shadow: 0 2px 10px rgba(255, 158, 0, 0.2);
 }
 
-.main-container .lookup-container button:hover{
-    background-color: rgba(255, 119, 0, 1);
-    transition: all 150ms 0s ease;
+.main-container .lookup-container button:hover {
+    background-color: #f59000;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 158, 0, 0.3);
 }
 
-.main-container .lookup-container button:active{
-    background-color: rgba(255, 119, 0, 0.65);
-    transition: all 150ms 0s ease;
+.main-container .lookup-container button:active {
+    background-color: #e58600;
+    transform: translateY(1px);
+    box-shadow: 0 1px 5px rgba(255, 158, 0, 0.2);
 }
 
-.main-container .lookup-container .search-results{
-    margin-top: 1rem;
-    border: 1px solid #808080;
-    padding: 24px;
-    border-radius: 20px;
-    background-color: rgba(255, 119, 0, 0.2);
+.main-container .lookup-container .search-results {
+    margin-top: 1.5rem;
+    border: none;
+    padding: 1.5rem;
+    border-radius: 12px;
+    background-color: #fff8eb;
+    border-left: 4px solid #ff9e00;
 }
 
-.main-container .lookup-container .search-results h3{
-    font-size: 18px;
-    font-weight: 600;
+.main-container .lookup-container .search-results h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
     margin-bottom: 1rem;
+    color: #2d3748;
 }
 
-.main-container .lookup-container .search-results p{
-    font-size: 16px;
-    font-weight: 400;
-    margin-bottom: 0.5rem;
-}
-
-.main-container .lookup-container .search-results .search-customer{
-    color: #c40000;
-    font-weight: 600;
-}
-
-.main-container .lookup-container .search-error{
-    margin: 0.5rem 0;
-}
-
-.table-container {
-    width: 100%;
-    overflow-x: auto;
-    margin: 4rem 0 0 0;
-}
-
-.table-container h4{
-    font-size: 22px;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-}
-
-.table-container .tb-info-row{
+.main-container .lookup-container .search-results p {
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
     display: flex;
     align-items: center;
     gap: 1rem;
 }
 
-.table-container .tb-info-row .total-products{
-    margin-bottom: .75rem;
-    color: hsl(151, 100%, 30%);
-    background-color: hsl(151, 100%, 80%);
-    font-weight: 500;
-    width: fit-content;
-    border-radius: 6px;
-    padding: 6px 10px;
+.main-container .lookup-container .search-results p strong {
+    min-width: 100px;
+    display: inline-block;
+    color: #4a5568;
 }
 
-.table-container .tb-info-row button{
-    margin-bottom: .75rem;
+.main-container .lookup-container .search-results .search-customer {
+    color: #e53e3e;
     font-weight: 500;
+}
+
+.main-container .lookup-container .search-error {
+    margin: 1rem 0;
+    color: #e53e3e;
+    font-weight: 500;
+}
+
+/* Table container styling */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    padding: 2rem;
+    margin-bottom: 3rem;
+}
+
+.table-container h4 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #2d3748;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.table-container .tb-info-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.table-container .tb-info-row .total-products {
+    margin: 0;
+    color: #047857;
+    background-color: #ecfdf5;
+    font-weight: 600;
     width: fit-content;
-    border-radius: 6px;
-    padding: 6px 14px;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.table-container .tb-info-row button {
+    margin: 0;
+    font-weight: 600;
+    width: fit-content;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
     border: none;
     outline: none;
-    font-weight: 500;
-    font-size: 15px;
-    background-color: #151515;
-    color: #f5f5f5;
+    font-size: 0.9rem;
+    background-color: #2d3748;
+    color: white;
     cursor: pointer;
+    transition: all 200ms ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 2px 10px rgba(45, 55, 72, 0.2);
+}
+
+.table-container .tb-info-row button:hover {
+    background-color: #1a202c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(45, 55, 72, 0.3);
+}
+
+.table-container .tb-info-row button:active {
+    background-color: #171923;
+    transform: translateY(1px);
+    box-shadow: 0 1px 5px rgba(45, 55, 72, 0.2);
 }
 
 table {
     width: 100%;
-    border-collapse: collapse; /* Removes gaps between borders */
+    border-collapse: separate;
+    border-spacing: 0;
     overflow: hidden;
-    font-size: 14px;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
 }
 
 /* Table Header */
 thead {
-    background-color: #f1f1f1; /* Light gray header */
-    color: #333;
-    font-weight: bold;
+    background-color: #f8fafc;
+    color: #4a5568;
+    font-weight: 600;
     text-align: left;
 }
 
+thead tr {
+    height: 50px;
+}
+
 /* Header and Cell Borders */
-th, td {
-    border: 1px solid #d0d0d0;
-    padding: 8px 12px;
+th,
+td {
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 1rem;
+}
+
+th {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
 }
 
 /* Alternating Row Colors */
 tbody tr:nth-child(odd) {
-    background-color: #f9f9f9;
+    background-color: white;
 }
 
 tbody tr:nth-child(even) {
-    background-color: #ffffff;
+    background-color: #f8fafc;
 }
 
 /* Hover Effect */
 tbody tr:hover {
-    background-color: #e6f7ff;
-    cursor: pointer;
+    background-color: #edf2f7;
+    cursor: default;
 }
 
 /* Delete Button Styling */
 .del-btn {
-    background-color: hsl(0, 100%, 65%);
-    color: white;
+    background-color: #fee2e2;
+    color: #e53e3e;
     border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
     cursor: pointer;
-    transition: 0.3s;
+    transition: all 200ms ease;
+    font-weight: 600;
+    font-size: 0.85rem;
 }
 
 .del-btn:hover {
-    background-color: hsl(0, 100%, 45%);
+    background-color: #fecaca;
+    color: #dc2626;
 }
 
-.del-btn:active{
-    background-color: hsl(0, 100%, 75%);
+.del-btn:active {
+    background-color: #fca5a5;
+    color: #b91c1c;
 }
 
 /* LOGIN JSX */
-.login-container{
+.login-container {
     display: flex;
     align-items: center;
     justify-content: center;
     height: 100vh;
+    background-color: #f8f9fa;
 }
 
-.login-container form{
+.login-container form {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    width: 250px;
+    width: 350px;
+    background-color: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
-.login-container label p{
-    font-size: 16px;
+.login-container label p {
+    font-size: 0.9rem;
     font-weight: 600;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.5rem;
+    color: #4a5568;
 }
 
-.login-container label input{
+.login-container label input {
     display: flex;
-    padding: 12px 14px;
+    padding: 0.75rem 1rem;
     width: 100%;
     outline: none;
-    border: 1px solid #a5a5a5;
-    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background-color: #f8fafc;
+    border-radius: 8px;
     margin-bottom: 1.5rem;
+    transition: all 200ms ease;
+}
+
+.login-container label input:focus {
+    border-color: #4361ee;
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+    background-color: white;
 }
 
 .login-container label input.inputPass {
@@ -350,80 +495,124 @@ tbody tr:hover {
 
 .login-container .show-password {
     margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
 }
 
-.login-container .show-password input{
-    position: absolute;
-    transform: translateY(6px) translateX(-116.5px) scale(1.2);
-    left: 0;
-}
-
-.login-container .show-password span{
+.login-container .show-password input {
     position: relative;
-    margin-left: 1.25rem;
-    font-size: 15px;
+    margin-right: 0.5rem;
+    width: auto;
+    transform: scale(1.2);
+    cursor: pointer;
 }
 
-.login-container button{
+.login-container .show-password span {
+    font-size: 0.9rem;
+    color: #4a5568;
+}
+
+.login-container button {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
-    padding: 12px;
+    padding: 0.75rem;
     border: none;
     outline: none;
-    background-color: #4285f4;
-    border-radius: 6px;
-    color: #f5f5f5;
-    font-size: 15px;
-    font-weight: 500;
+    background-color: #4361ee;
+    border-radius: 8px;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
     cursor: pointer;
+    transition: all 200ms ease;
+    box-shadow: 0 2px 10px rgba(67, 97, 238, 0.2);
+}
+
+.login-container button:hover {
+    background-color: #3a56d4;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+}
+
+.login-container button:active {
+    background-color: #2e46c0;
+    transform: translateY(1px);
+    box-shadow: 0 1px 5px rgba(67, 97, 238, 0.2);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .main-container {
+        padding: 0 1.5rem;
+        margin: 1.5rem auto;
+    }
+
+    .main-container .add-information-container,
+    .main-container .lookup-container,
+    .table-container {
+        padding: 1.5rem;
+    }
+
+    .main-container .lookup-container input {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+
+    .main-container .lookup-container button {
+        width: 100%;
+    }
+
+    .main-container .user-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .main-container .user-container .right {
+        width: 100%;
+    }
+
+    .main-container .user-container .right button {
+        width: 100%;
+    }
 }
 
 @media (max-width: 450px) {
-    .main-container .lookup-container button{
-        display: flex;
-        align-items: center;
-        margin-top: 1rem;
+    .main-container {
+        padding: 0 1rem;
+        margin: 1rem auto;
+    }
+
+    .main-container .add-information-container h1,
+    .main-container .lookup-container h1,
+    .table-container h4 {
+        font-size: 1.25rem;
+    }
+
+    .main-container .add-information-container,
+    .main-container .lookup-container,
+    .table-container {
+        padding: 1.25rem;
+    }
+
+    th,
+    td {
+        padding: 0.75rem;
     }
 }
 
 @media (max-width: 350px) {
     .main-container {
-        margin: 2rem 1rem;
+        padding: 0 0.75rem;
+        margin: 0.75rem auto;
     }
-    .main-container .add-information-container form .submit-btn {
-        width: 100%;
+
+    .main-container .add-information-container,
+    .main-container .lookup-container,
+    .table-container {
+        padding: 1rem;
     }
-    .main-container .add-information-container form .submit-btn button {
-        width: 100%;
-    }
-    .main-container .add-information-container form .input-container {
-        display: grid;
-        grid-template-columns: repeat(1, 1fr);
-        align-items: center;
-        margin-bottom: 1rem;
-        overflow: hidden;
-    }
-    .main-container .add-information-container form .input-container label input {
-        width: 100%;
-    }
-    .main-container .lookup-container input {
-        width: 100%;
-    }
-    .main-container .lookup-container button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-    }
-    .main-container .add-information-container h1 {
-        font-size: 20px;
-    }
-    .main-container .lookup-container h1 {
-        font-size: 20px;
-    }
-    .table-container h4 {
-        font-size: 20px;
-    }
-} 
+}
