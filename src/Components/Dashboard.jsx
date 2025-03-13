@@ -96,8 +96,24 @@ export default function App() {
         setActiveField(null);
     }
 
-    const handleSubmit = async (e) => {
+    const handleConfirmSubmit = (e) => {
         e.preventDefault();
+
+        if (Object.values(form).some((value) => value.trim() === "")) {
+            alert("Please fill in all the blanks.");
+            return;
+        }
+        
+        if (window.confirm(`Are you sure you want to add ${quantity} quantities for the serial number ${form.serialNumber}?`)) {
+            handleSubmit();
+            return;
+        } else {
+            console.log("Submission cancelled.");
+            return;
+        }
+    }
+
+    const handleSubmit = async () => {
     
         if (Object.values(form).some((value) => value.trim() === "")) {
             alert("Please fill in all the blanks.");
@@ -300,7 +316,7 @@ export default function App() {
         });
     
         doc.save(`inventory_backup_${numRows}_rows.pdf`);
-    };
+    }; // ⭐
 
     return (
         <>
@@ -319,7 +335,7 @@ export default function App() {
                 {/* Add new inventory */}
                 <div className="add-information-container">
                     <h1>Enter Product Information 📄</h1>
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleConfirmSubmit}>
                         <div className="input-container">
                             {["item"].map((field) => (
                                 <label>
