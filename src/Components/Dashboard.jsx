@@ -370,133 +370,157 @@ export default function App() {
 
                 {/* Add new inventory */}
                 <div className="add-information-container">
-                    <h1>Enter Product Information 📄</h1>
                     <form onSubmit={handleConfirmSubmit}>
                         <div className="input-container">
-                            {["item"].map((field) => (
-                                <label>
-                                    <p>{field.toUpperCase()}</p>
-                                    <input
-                                        type="text"
-                                        name={field}
-                                        placeholder={`${field.toUpperCase()}...`}
-                                        value={form[field]}
-                                        onChange={handleInputChange}
-                                        onBlur={() =>
-                                            setTimeout(() => {
-                                                setActiveField(null);
-                                            }, 100)
-                                        }
-                                    />
-
-                                    {activeField === field &&
-                                        dropDownData[field]?.length > 0 && (
-                                            <ul className="dropdown">
-                                                {dropDownData[field]
-                                                    .slice(0, 5)
-                                                    .map((item, index) => (
-                                                        <li
-                                                            key={index}
-                                                            onClick={() =>
-                                                                handleSelectItem(
-                                                                    field,
-                                                                    item
-                                                                )
-                                                            }
-                                                        >
-                                                            {item}
-                                                        </li>
-                                                    ))}
-                                            </ul>
-                                        )}
-                                </label>
-                            ))}
-                            {["customer"].map((field) => (
-                                <label>
-                                    <p>CUSTOMER NAME</p>
-                                    <input
-                                        type="text"
-                                        name={field}
-                                        placeholder={`CUSTOMER NAME...`}
-                                        value={form[field]}
-                                        onChange={handleInputChange}
-                                        onBlur={() =>
-                                            setTimeout(() => {
-                                                setActiveField(null);
-                                            }, 100)
-                                        }
-                                    />
-
-                                    {activeField === field &&
-                                        dropDownData[field]?.length > 0 && (
-                                            <ul className="dropdown">
-                                                {dropDownData[field]
-                                                    .slice(0, 5)
-                                                    .map((item, index) => (
-                                                        <li
-                                                            key={index}
-                                                            onClick={() =>
-                                                                handleSelectItem(
-                                                                    field,
-                                                                    item
-                                                                )
-                                                            }
-                                                        >
-                                                            {item}
-                                                        </li>
-                                                    ))}
-                                            </ul>
-                                        )}
-                                </label>
-                            ))}
-                            <label>
-                                <p>INVOICE NO</p>
-                                <input
-                                    type="text"
-                                    name="invoiceNo"
-                                    placeholder="INVOICE NO..."
-                                    value={form.invoiceNo}
-                                    onChange={handleInputChange}
-                                />
-                            </label>
-                            <label>
-                                <p>INVOICE DATE</p>
-                                <input
-                                    type="date"
-                                    name="invoiceDate"
-                                    value={form.invoiceDate}
-                                    onChange={handleInputChange}
-                                />
-                            </label>
-                            {console.log(form.serialNumber)}
-                            {form.serialNumber.map((serial, index) => (
-                                <div key={index}>
+                            <h1>Enter Product Information 📄</h1>
+                            <div className="input-container-box">
+                                {["item"].map((field) => (
                                     <label>
-                                        <p>Serial Number #{index+1}</p>
+                                        <p>{field.toUpperCase()}</p>
                                         <input
                                             type="text"
-                                            name={`serialNumber-${index}`}
-                                            value={serial}
-                                            onChange={(e) => handleSerialNumberChange(e, index)}
-                                            placeholder={`SERIAL NUMBER #${index+1}...`}
+                                            name={field}
+                                            placeholder={`${field.toUpperCase()}...`}
+                                            value={form[field]}
+                                            onChange={handleInputChange}
+                                            onBlur={() =>
+                                                setTimeout(() => {
+                                                    setActiveField(null);
+                                                }, 100)
+                                            }
                                         />
+
+                                        {activeField === field &&
+                                            dropDownData[field]?.length > 0 && (
+                                                <ul className="dropdown">
+                                                    {dropDownData[field]
+                                                        .slice(0, 5)
+                                                        .map((item, index) => (
+                                                            <li
+                                                                key={index}
+                                                                onClick={() =>
+                                                                    handleSelectItem(
+                                                                        field,
+                                                                        item
+                                                                    )
+                                                                }
+                                                            >
+                                                                {item}
+                                                            </li>
+                                                        ))}
+                                                </ul>
+                                            )}
                                     </label>
+                                ))}
+                                {["customer"].map((field) => (
                                     <label>
-                                        <p>Quantity for Serial Number #{index+1}</p>
+                                        <p>CUSTOMER NAME</p>
                                         <input
-                                            type="number"
-                                            name={`quantity-${index}`}
-                                            value={form.quantity[index] || 1}
-                                            onChange={(e) => handleQuantityChange(e, index)}
-                                            max={40}
+                                            type="text"
+                                            name={field}
+                                            placeholder={`CUSTOMER NAME...`}
+                                            value={form[field]}
+                                            onChange={handleInputChange}
+                                            onBlur={() =>
+                                                setTimeout(() => {
+                                                    setActiveField(null);
+                                                }, 100)
+                                            }
                                         />
+
+                                        {activeField === field &&
+                                            dropDownData[field]?.length > 0 && (
+                                                <ul className="dropdown">
+                                                    {dropDownData[field]
+                                                        .slice(0, 5)
+                                                        .map((item, index) => (
+                                                            <li
+                                                                key={index}
+                                                                onClick={() =>
+                                                                    handleSelectItem(
+                                                                        field,
+                                                                        item
+                                                                    )
+                                                                }
+                                                            >
+                                                                {item}
+                                                            </li>
+                                                        ))}
+                                                </ul>
+                                            )}
                                     </label>
-                                </div>
-                            ))}
-                            <button type="button" onClick={handleAddSerialQ} className="add-serialQ-btn">Add New Serial</button>
+                                ))}
+                                <label>
+                                    <p>INVOICE NO</p>
+                                    <input
+                                        type="text"
+                                        name="invoiceNo"
+                                        placeholder="INVOICE NO..."
+                                        value={form.invoiceNo}
+                                        onChange={handleInputChange}
+                                    />
+                                </label>
+                                <label>
+                                    <p>INVOICE DATE</p>
+                                    <input
+                                        type="date"
+                                        name="invoiceDate"
+                                        value={form.invoiceDate}
+                                        onChange={handleInputChange}
+                                    />
+                                </label>
+                            </div>
+                        </div>
+                        <div className="input-second-container">
+                            <h2>Serial Numbers 🔢</h2>
+                            <div className="input-second-box">
+                                {form.serialNumber.map((serial, index) => (
+                                    <div className='serial-quantity-inputs' key={index}>
+                                        <label>
+                                            <p>Serial Number #{index + 1}</p>
+                                            <input
+                                                type="text"
+                                                name={`serialNumber-${index}`}
+                                                value={serial}
+                                                onChange={(e) =>
+                                                    handleSerialNumberChange(
+                                                        e,
+                                                        index
+                                                    )
+                                                }
+                                                placeholder={`SERIAL NUMBER #${
+                                                    index + 1
+                                                }...`}
+                                            />
+                                        </label>
+                                        <label>
+                                            <p>
+                                                Quantity for Serial Number #
+                                                {index + 1}
+                                            </p>
+                                            <input
+                                                type="number"
+                                                name={`quantity-${index}`}
+                                                value={form.quantity[index] || 1}
+                                                onChange={(e) =>
+                                                    handleQuantityChange(e, index)
+                                                }
+                                                max={40}
+                                            />
+                                        </label>
+                                    </div>
+                                ))}
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleAddSerialQ}
+                                className="add-serialQ-btn"
+                            >
+                                Add New Serial
+                            </button>
                         </div>
                         <div className="submit-btn">
-                            <button type="submit">Add</button>
+                            <button type="submit">Add To Inventory</button>
                         </div>
                     </form>
                 </div>
