@@ -13,14 +13,13 @@ const supabase = createClient(
 export default function App() {
     const [form, setForm] = useState({
         item: '',
+        serialNumber: '',
         customer: '',
         invoiceNo: '',
-        invoiceDate: '',
-        serialNumber: [''],
-        quantity: [1],
+        invoiceDate: ''
     });
     const [inventory, setInventory] = useState([]);
-    // const [quantity, setQuantity] = useState(1);
+    const [quantity, setQuantity] = useState(1);
     const [searchSerial, setSearchSerial] = useState('');
     const [searchResult, setSearchResult] = useState(null);
 
@@ -54,7 +53,7 @@ export default function App() {
         localStorage.removeItem("isAuthenticated");
         navigate("/login");
     }
-
+    
     // Fetch inventory from Supabase on load
     useEffect(() => {
         const fetchInventory = async () => {
@@ -100,64 +99,58 @@ export default function App() {
     const handleConfirmSubmit = (e) => {
         e.preventDefault();
 
-        let checkFilled = Object.values(form).every(value => {
-            if(Array.isArray(value)) {
-                return value.every(item => !!item);
-            }
-            return !!value;
-        })
-
-        if(checkFilled){
-
-            let message = form.serialNumber
-                .map((serial, i) => `Serial: ${serial}, Quantity: ${form.quantity[i]}?`)
-                .join("\n");
-            
-            if (window.confirm(`Are you sure you want to add the following \n\n${message}`)) {
-                handleSubmit();
-                return;
-            } else {
-                console.log("Submission cancelled.");
-                return;
-            }
-        }
-        else {
+        if (Object.values(form).some((value) => value.trim() === "")) {
             alert("Please fill in all the blanks.");
             return;
         }
         
-    };
+        if (window.confirm(`Are you sure you want to add ${quantity} quantities for the serial number ${form.serialNumber}?`)) {
+            handleSubmit();
+            return;
+        } else {
+            console.log("Submission cancelled.");
+            return;
+        }
+    }
 
     const handleSubmit = async () => {
     
+        if (Object.values(form).some((value) => value.trim() === "")) {
+            alert("Please fill in all the blanks.");
+            return;
+        }
+    
         try {
+            const serialNumbersArray = form.serialNumber.split(",").map(sn => sn.trim());
     
             let newEntries = [];
     
-            form.serialNumber.forEach((serial, index) => {
+            // Process each serial number
+            for (let serial of serialNumbersArray) {
+                // Split by "-" to get the prefix and number
                 const parts = serial.split("-");
-                if (parts.length !== 2 || isNaN(parts[1])){
+                if (parts.length !== 2 || isNaN(parts[1])) {
                     alert(`Invalid serial number format: ${serial}`);
                     return;
                 }
-
-                const prefix = parts[0];
-                let baseNumber = parseInt(parts[1], 10);
-
-                const quantity = form.quantity[index];
-                
-                for (let i = 0; i < quantity; i++){
-                    const uniqueSerial = `${prefix}-${baseNumber + i}`
+    
+                const prefix = parts[0];  // The alphabetic part (e.g., "CFG" or "B85")
+                let baseNumber = parseInt(parts[1], 10); // The numeric part (e.g., "12345")
+    
+                // Generate quantity number of serial numbers
+                for (let i = 0; i < quantity; i++) {
+                    const uniqueSerial = `${prefix}-${baseNumber + i}`; // Increment the numeric part
                     newEntries.push({
                         item: form.item,
                         serial_number: uniqueSerial,
                         customer: form.customer,
                         invoice_no: form.invoiceNo,
                         invoice_date: form.invoiceDate
-                    })
+                    });
                 }
-            })
-            
+            }
+    
+            // Check if serial numbers already exist in Supabase
             const { data: existingData, error: fetchError } = await supabase
                 .from('inventory')
                 .select('serial_number')
@@ -187,42 +180,14 @@ export default function App() {
                 alert("Error adding entry. Ensure serial numbers are unique.");
             } else {
                 setInventory([...inventory, ...data]);
-                setForm({ item: '', serialNumber: [''], customer: '', invoiceNo: '', invoiceDate: '', quantity: [1] });
-                // setQuantity(1);
-                let message = form.serialNumber
-                    .map((serial, i) => `Serial: ${serial}, Quantity: ${form.quantity[i]}`)
-                    .join("\n");
-                alert(`Successfully added the following: \n\n${message}`);
+                setForm({ item: '', serialNumber: '', customer: '', invoiceNo: '', invoiceDate: '' });
+                setQuantity(1);
+                alert(`Successfully added ${data.length} serial number(s).`);
             }
         } catch (error) {
             console.error('Submission Error:', error.message);
         }
     }; // ⭐
-
-    useEffect(() => {
-        console.log(form);
-        // console.log(inventory);
-    }, [form, inventory])
-
-    const handleSerialNumberChange = (e, index) => {
-        const newSerialNumbers = [...form.serialNumber];
-        newSerialNumbers[index] = e.target.value;
-        setForm({...form, serialNumber: newSerialNumbers});
-    }
-
-    const handleQuantityChange = (e, index) => {
-        const newQuantities = [...form.quantity];
-        newQuantities[index] = Number(e.target.value);
-        setForm({ ...form, quantity: newQuantities });
-    }
-
-    const handleAddSerialQ = () => {
-        setForm({
-            ...form,
-            serialNumber: [...form.serialNumber, ''],
-            quantity: [...form.quantity, 1]
-        })
-    }
 
     const deleteEntry = async (id) => {
 
@@ -411,6 +376,28 @@ export default function App() {
                                         )}
                                 </label>
                             ))}
+                            <label>
+                                <p>QUANTITY</p>
+                                <input
+                                    type="number"
+                                    name="quantity"
+                                    max={40}
+                                    value={quantity}
+                                    onChange={(e) =>
+                                        setQuantity(Number(e.target.value))
+                                    }
+                                />
+                            </label>
+                            <label>
+                                <p>SERIAL NUMBER</p>
+                                <input
+                                    type="text"
+                                    name="serialNumber"
+                                    value={form.serialNumber}
+                                    onChange={handleInputChange}
+                                    placeholder="SERIAL NUMBER..."
+                                />
+                            </label>
                             {["customer"].map((field) => (
                                 <label>
                                     <p>CUSTOMER NAME</p>
@@ -468,32 +455,6 @@ export default function App() {
                                     onChange={handleInputChange}
                                 />
                             </label>
-                            {console.log(form.serialNumber)}
-                            {form.serialNumber.map((serial, index) => (
-                                <div key={index}>
-                                    <label>
-                                        <p>Serial Number #{index+1}</p>
-                                        <input
-                                            type="text"
-                                            name={`serialNumber-${index}`}
-                                            value={serial}
-                                            onChange={(e) => handleSerialNumberChange(e, index)}
-                                            placeholder={`SERIAL NUMBER #${index+1}...`}
-                                        />
-                                    </label>
-                                    <label>
-                                        <p>Quantity for Serial Number #{index+1}</p>
-                                        <input
-                                            type="number"
-                                            name={`quantity-${index}`}
-                                            value={form.quantity[index] || 1}
-                                            onChange={(e) => handleQuantityChange(e, index)}
-                                            max={40}
-                                        />
-                                    </label>
-                                </div>
-                            ))}
-                            <button type="button" onClick={handleAddSerialQ} className="add-serialQ-btn">Add New Serial</button>
                         </div>
                         <div className="submit-btn">
                             <button type="submit">Add</button>
