@@ -1,5 +1,6 @@
 {
   "name": "inventory-barcode",
+  "homepage": "https://vickrant-dev.github.io/inventory/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
