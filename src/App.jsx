@@ -6,7 +6,7 @@ import Dashboard from './Components/Dashboard';
 
 export default function App() {
     return (
-        <Router basename='/inventory'>
+        <Router>
             <Routes>
                 <Route path='/login' element={<Login />} />
                 <Route path='/dashboard' element={<Dashboard />} />
