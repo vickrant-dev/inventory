@@ -327,21 +327,33 @@ export default function App() {
         const selectedEntries = sortedInventory.slice(0, numRows);
     
         const doc = new jsPDF();
-        let y = 20; 
+        let y = 20;
+        const marginTop = 10;
+        const pageHeight = doc.internal.pageSize.height;
     
-        doc.setFontSize(12);
-        doc.text("Inventory Backup", 14, 10);
-        doc.line(10, 12, 200, 12);
+        const addHeaders = () => {
+            doc.setFontSize(12);
+            doc.text("Inventory Backup", 14, marginTop);
+            doc.line(10, marginTop + 2, 200, marginTop + 2);
     
-        doc.text("Item", 10, y);
-        doc.text("Serial Number", 50, y);
-        doc.text("Customer", 100, y);
-        doc.text("Invoice No", 150, y);
-        doc.text("Invoice Date", 180, y);
-        
-        y += 10;
+            doc.text("Item", 10, y);
+            doc.text("Serial Number", 50, y);
+            doc.text("Customer", 100, y);
+            doc.text("Invoice No", 150, y);
+            doc.text("Invoice Date", 180, y);
+            
+            y += 10;
+        };
     
-        selectedEntries.forEach(row => {
+        addHeaders();
+    
+        selectedEntries.forEach((row, index) => {
+            if (y + 10 > pageHeight - 10) {  // Check if new row fits on the page
+                doc.addPage();
+                y = marginTop + 10;  // Reset y for new page
+                addHeaders();  // Re-add headers for new page
+            }
+    
             doc.text(row.item, 10, y);
             doc.text(row.serial_number, 50, y);
             doc.text(row.customer, 100, y);
@@ -351,7 +363,8 @@ export default function App() {
         });
     
         doc.save(`inventory_backup_${numRows}_rows.pdf`);
-    }; // ⭐
+    };
+     // ⭐
 
     return (
         <>
