@@ -252,7 +252,7 @@ export default function App() {
         }
 
         const { data, error } = await supabase
-            .from('inventory')
+            .from('inventorynew')
             .select('*')
             .eq('serial_number', searchSerial.trim());
 
