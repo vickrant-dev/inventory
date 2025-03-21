@@ -607,7 +607,7 @@ export default function App() {
                                         new Date(b.invoice_date) -
                                         new Date(a.invoice_date)
                                 )
-                                .slice()
+                                .slice(0, 60)
                                 .map((data) => (
                                     <tr key={data.id}>
                                         <td>{data.item}</td>
