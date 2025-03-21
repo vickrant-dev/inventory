@@ -20,7 +20,6 @@ export default function App() {
         quantity: [1],
     });
     const [inventory, setInventory] = useState([]);
-    // const [quantity, setQuantity] = useState(1);
     const [searchSerial, setSearchSerial] = useState('');
     const [searchResult, setSearchResult] = useState(null);
 
@@ -58,7 +57,7 @@ export default function App() {
     // Fetch inventory from Supabase on load
     useEffect(() => {
         const fetchInventory = async () => {
-            const { data, error } = await supabase.from('inventory').select('*');
+            const { data, error } = await supabase.from('inventorynew').select('*');
             if (error) {
                 console.error('Error fetching inventory:', error.message);
             } else {
@@ -608,7 +607,7 @@ export default function App() {
                                         new Date(b.invoice_date) -
                                         new Date(a.invoice_date)
                                 )
-                                .slice(0, 60)
+                                .slice()
                                 .map((data) => (
                                     <tr key={data.id}>
                                         <td>{data.item}</td>
