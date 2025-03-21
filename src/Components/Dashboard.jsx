@@ -158,7 +158,7 @@ export default function App() {
             })
             
             const { data: existingData, error: fetchError } = await supabase
-                .from('inventory')
+                .from('inventorynew')
                 .select('serial_number')
                 .in('serial_number', newEntries.map(entry => entry.serial_number));
     
@@ -179,7 +179,7 @@ export default function App() {
             }
     
             // Insert only unique serial numbers into Supabase
-            const { data, error } = await supabase.from('inventory').insert(newEntries).select();
+            const { data, error } = await supabase.from('inventorynew').insert(newEntries).select();
     
             if (error) {
                 console.error('Error inserting data:', error.message);
@@ -235,7 +235,7 @@ export default function App() {
 
         if(!isConfirmed) return;
 
-        const { error } = await supabase.from('inventory').delete().eq('id', id);
+        const { error } = await supabase.from('inventorynew').delete().eq('id', id);
 
         if (error) {
             console.error('Error deleting:', error.message);
