@@ -8,7 +8,7 @@ export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
 
-    const C_username = "Kasi Selvendran";
+    const C_username = "steel";
     const C_password = "selva@1972";
 
     localStorage.setItem('username', C_username);
