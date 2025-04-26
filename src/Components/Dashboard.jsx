@@ -27,6 +27,11 @@ export default function App() {
   const [dropDownData, setDropDownData] = useState({})
   const [activeField, setActiveField] = useState(null)
 
+  const [loading, setLoading] = useState({
+    inventory: false,
+    search: false,
+  });
+
   const navigate = useNavigate()
 
   const user_username = localStorage.getItem("username")
@@ -124,6 +129,12 @@ export default function App() {
   }
 
   const handleSubmit = async () => {
+
+    setLoading((prev) => ({
+      ...prev,
+      inventory: true
+    }));
+
     try {
       let newEntries = []
 
@@ -131,6 +142,10 @@ export default function App() {
         const parts = serial.split("-")
         if (parts.length !== 2 || isNaN(parts[1])) {
           alert(`Invalid serial number format: ${serial}`)
+          setLoading((prev) => ({
+            ...prev,
+            inventory: false
+          }));
           return
         }
 
@@ -160,7 +175,11 @@ export default function App() {
         )
 
       if (fetchError) {
-        console.error("Error fetching existing serial numbers:", fetchError.message)
+        console.error("Error fetching existing serial numbers:", fetchError.message);
+        setLoading((prev) => ({
+          ...prev,
+          inventory: false
+        }));
         return
       }
 
@@ -171,7 +190,11 @@ export default function App() {
       newEntries = newEntries.filter((entry) => !existingSerials.has(entry.serial_number))
 
       if (newEntries.length === 0) {
-        alert("All serial numbers already exist. No new entries were added.")
+        alert("All serial numbers already exist. No new entries were added.");
+        setLoading((prev) => ({
+          ...prev,
+          inventory: false
+        }));
         return
       }
 
@@ -180,18 +203,29 @@ export default function App() {
 
       if (error) {
         console.error("Error inserting data:", error.message)
-        alert("Error adding entry. Ensure serial numbers are unique.")
+        setLoading((prev) => ({
+          ...prev,
+          inventory: false
+        }));
+        alert("Error adding entry. Ensure serial numbers are unique.");
       } else {
         setInventory([...inventory, ...data])
         setForm({ item: "", serialNumber: [""], customer: "", invoiceNo: "", invoiceDate: "", quantity: [""] })
-        // setQuantity(1);
+        setLoading((prev) => ({
+          ...prev,
+          inventory: false
+        }));
         const message = form.serialNumber
           .map((serial, i) => `Serial: ${serial}, Quantity: ${form.quantity[i]}`)
           .join("\n")
         alert(`Successfully added the following: \n\n${message}`)
       }
     } catch (error) {
-      console.error("Submission Error:", error.message)
+      console.error("Submission Error:", error.message);
+      setLoading((prev) => ({
+        ...prev,
+        inventory: false
+      }));
     }
   } // ⭐
 
@@ -263,12 +297,25 @@ export default function App() {
       return
     }
 
+    setLoading((prev) => ({
+      ...prev,
+      search: true
+    }));
+
     const { data, error } = await supabase.from("inventorynew").select("*").eq("serial_number", searchSerial.trim())
 
     if (error) {
-      console.error("Error searching for serial number:", error.message)
+      console.error("Error searching for serial number:", error.message);
+      setLoading((prev) => ({
+        ...prev,
+        search: false
+      }));
     } else {
-      setSearchResult(data.length > 0 ? data[0] : null)
+      setSearchResult(data.length > 0 ? data[0] : null);
+      setLoading((prev) => ({
+        ...prev,
+        search: false
+      }));
     }
   }
 
@@ -528,7 +575,13 @@ export default function App() {
               </button>
             </div>
             <div className="submit-btn">
-              <button type="submit">Add To Inventory</button>
+              <button type="submit">{ loading.inventory ? (
+                <>
+                  <p>Adding...</p>
+                </>
+              ) : (
+                'Add to inventory'
+              )}</button>
             </div>
           </form>
         </div>
@@ -542,7 +595,13 @@ export default function App() {
             onChange={(e) => setSearchSerial(e.target.value)}
             placeholder="Enter serial number"
           />
-          <button onClick={handleSearch}>Search</button>
+          <button onClick={handleSearch}>{ loading.search ? (
+            <>
+              <p>Searching...</p>
+            </>
+          ) : (
+            'Search'
+          ) }</button>
           {searchResult ? (
             <div className="search-results">
               <h3>Details for {searchResult.serial_number}</h3>
