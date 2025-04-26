@@ -234,53 +234,11 @@ export default function App() {
     // console.log(inventory);
   }, [form, inventory])
 
-  const debounceTimers = {};
-
   const handleSerialNumberChange = (e, index) => {
-    const input = e.target.value.trim();
-    const [serialPart, qtyPart] = input.split('_'); // First split the input
-  
-    const newSerialNumbers = [...form.serialNumber];
-    const newQuantities = [...form.quantity];
-  
-    newSerialNumbers[index] = serialPart; // Save only the serial part now
-  
-    if (qtyPart) {
-      newQuantities[index] = Number(qtyPart);
-    }
-  
-    // Update form immediately
-    setForm((prevForm) => ({
-      ...prevForm,
-      serialNumber: newSerialNumbers,
-      quantity: newQuantities,
-    }));
-  
-    // Clear the previous timer for THIS index
-    clearTimeout(debounceTimers[index]);
-  
-    // Set a new timer for THIS index
-    debounceTimers[index] = setTimeout(async () => {
-      const modelCode = serialPart.split('-')[0];
-  
-      if (modelCode) {
-        const { data, error } = await supabase
-          .from('products')
-          .select('product_name')
-          .eq('barcode_id', modelCode)
-          .single();
-  
-        if (error) {
-          console.error(`Error fetching item name for index ${index}:`, error.message);
-        } else if (data) {
-          setForm((prevForm) => ({
-            ...prevForm,
-            item: data.product_name,
-          }));
-        }
-      }
-    }, 2000); // 2000ms delay
-  };  
+    const newSerialNumbers = [...form.serialNumber]
+    newSerialNumbers[index] = e.target.value
+    setForm({ ...form, serialNumber: newSerialNumbers })
+  }
 
   const handleQuantityChange = (e, index) => {
     const newQuantities = [...form.quantity]
