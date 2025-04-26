@@ -1,3 +1,5 @@
+"use client"
+
 import { useEffect, useState } from "react"
 import "../App.css"
 import { useNavigate } from "react-router-dom"
@@ -30,11 +32,17 @@ export default function App() {
   const [loading, setLoading] = useState({
     inventory: false,
     search: false,
-  });
+  })
 
   const navigate = useNavigate()
 
   const user_username = localStorage.getItem("username")
+
+  const [modelForm, setModelForm] = useState({
+    productName: "",
+    barcodeId: "",
+  })
+  const [modelLoading, setModelLoading] = useState(false)
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("isAuthenticated")
@@ -129,11 +137,10 @@ export default function App() {
   }
 
   const handleSubmit = async () => {
-
     setLoading((prev) => ({
       ...prev,
-      inventory: true
-    }));
+      inventory: true,
+    }))
 
     try {
       let newEntries = []
@@ -144,8 +151,8 @@ export default function App() {
           alert(`Invalid serial number format: ${serial}`)
           setLoading((prev) => ({
             ...prev,
-            inventory: false
-          }));
+            inventory: false,
+          }))
           return
         }
 
@@ -175,11 +182,11 @@ export default function App() {
         )
 
       if (fetchError) {
-        console.error("Error fetching existing serial numbers:", fetchError.message);
+        console.error("Error fetching existing serial numbers:", fetchError.message)
         setLoading((prev) => ({
           ...prev,
-          inventory: false
-        }));
+          inventory: false,
+        }))
         return
       }
 
@@ -190,11 +197,11 @@ export default function App() {
       newEntries = newEntries.filter((entry) => !existingSerials.has(entry.serial_number))
 
       if (newEntries.length === 0) {
-        alert("All serial numbers already exist. No new entries were added.");
+        alert("All serial numbers already exist. No new entries were added.")
         setLoading((prev) => ({
           ...prev,
-          inventory: false
-        }));
+          inventory: false,
+        }))
         return
       }
 
@@ -205,82 +212,139 @@ export default function App() {
         console.error("Error inserting data:", error.message)
         setLoading((prev) => ({
           ...prev,
-          inventory: false
-        }));
-        alert("Error adding entry. Ensure serial numbers are unique.");
+          inventory: false,
+        }))
+        alert("Error adding entry. Ensure serial numbers are unique.")
       } else {
         setInventory([...inventory, ...data])
         setForm({ item: "", serialNumber: [""], customer: "", invoiceNo: "", invoiceDate: "", quantity: [""] })
         setLoading((prev) => ({
           ...prev,
-          inventory: false
-        }));
+          inventory: false,
+        }))
         const message = form.serialNumber
           .map((serial, i) => `Serial: ${serial}, Quantity: ${form.quantity[i]}`)
           .join("\n")
         alert(`Successfully added the following: \n\n${message}`)
       }
     } catch (error) {
-      console.error("Submission Error:", error.message);
+      console.error("Submission Error:", error.message)
       setLoading((prev) => ({
         ...prev,
-        inventory: false
-      }));
+        inventory: false,
+      }))
     }
   } // ⭐
+
+  const handleModelSubmit = async (e) => {
+    e.preventDefault()
+
+    if (!modelForm.productName || !modelForm.barcodeId) {
+      alert("Please fill in all fields")
+      return
+    }
+
+    setModelLoading(true)
+
+    try {
+      // Check if barcode already exists
+      const { data: existingBarcode, error: checkError } = await supabase
+        .from("products")
+        .select("barcode_id")
+        .eq("barcode_id", modelForm.barcodeId)
+        .single()
+
+      if (checkError && checkError.code !== "PGRST116") {
+        console.error("Error checking barcode:", checkError.message)
+        alert("Error checking barcode. Please try again.")
+        setModelLoading(false)
+        return
+      }
+
+      if (existingBarcode) {
+        alert("This barcode ID already exists. Please use a different one.")
+        setModelLoading(false)
+        return
+      }
+
+      // Insert new model
+      const { data, error } = await supabase
+        .from("products")
+        .insert([
+          {
+            product_name: modelForm.productName,
+            barcode_id: modelForm.barcodeId,
+          },
+        ])
+        .select()
+
+      if (error) {
+        console.error("Error adding model:", error.message)
+        alert("Error adding model. Please try again.")
+      } else {
+        alert(`Successfully added new model: ${modelForm.productName} with barcode: ${modelForm.barcodeId}`)
+        setModelForm({ productName: "", barcodeId: "" })
+      }
+    } catch (error) {
+      console.error("Model submission error:", error.message)
+      alert("An unexpected error occurred. Please try again.")
+    } finally {
+      setModelLoading(false)
+    }
+  }
 
   useEffect(() => {
     console.log(form)
     // console.log(inventory);
   }, [form, inventory])
 
-  const debounceTimers = {};
+  const debounceTimers = {}
 
   const handleSerialNumberChange = (e, index) => {
-    const input = e.target.value.trim();
-    const [serialPart, qtyPart] = input.split('_'); // First split the input
-  
-    const newSerialNumbers = [...form.serialNumber];
-    const newQuantities = [...form.quantity];
-  
-    newSerialNumbers[index] = serialPart; // Save only the serial part now
-  
+    const input = e.target.value.trim()
+    const [serialPart, qtyPart] = input.split("_") // First split the input
+
+    const newSerialNumbers = [...form.serialNumber]
+    const newQuantities = [...form.quantity]
+
+    newSerialNumbers[index] = serialPart // Save only the serial part now
+
     if (qtyPart) {
-      newQuantities[index] = Number(qtyPart);
+      newQuantities[index] = Number(qtyPart)
     }
-  
+
     // Update form immediately
     setForm((prevForm) => ({
       ...prevForm,
       serialNumber: newSerialNumbers,
       quantity: newQuantities,
-    }));
-  
+    }))
+
     // Clear the previous timer for THIS index
-    clearTimeout(debounceTimers[index]);
-  
+    clearTimeout(debounceTimers[index])
+
     // Set a new timer for THIS index
     debounceTimers[index] = setTimeout(async () => {
-      const modelCode = serialPart.split('-')[0];
-  
+      const modelCode = serialPart.split("-")[0]
+
       if (modelCode) {
         const { data, error } = await supabase
-          .from('products')
-          .select('product_name')
-          .eq('barcode_id', modelCode)
-          .single();
-  
+          .from("products")
+          .select("product_name")
+          .eq("barcode_id", modelCode)
+          .single()
+
         if (error) {
-          console.error(`Error fetching item name for index ${index}:`, error.message);
+          console.error(`Error fetching item name for index ${index}:`, error.message)
         } else if (data) {
           setForm((prevForm) => ({
             ...prevForm,
             item: data.product_name,
-          }));
+          }))
         }
       }
-    }, 2000); // 2000ms delay
-  };  
+    }, 2000) // 2000ms delay
+  }
 
   const handleQuantityChange = (e, index) => {
     const newQuantities = [...form.quantity]
@@ -341,23 +405,23 @@ export default function App() {
 
     setLoading((prev) => ({
       ...prev,
-      search: true
-    }));
+      search: true,
+    }))
 
     const { data, error } = await supabase.from("inventorynew").select("*").eq("serial_number", searchSerial.trim())
 
     if (error) {
-      console.error("Error searching for serial number:", error.message);
+      console.error("Error searching for serial number:", error.message)
       setLoading((prev) => ({
         ...prev,
-        search: false
-      }));
+        search: false,
+      }))
     } else {
-      setSearchResult(data.length > 0 ? data[0] : null);
+      setSearchResult(data.length > 0 ? data[0] : null)
       setLoading((prev) => ({
         ...prev,
-        search: false
-      }));
+        search: false,
+      }))
     }
   }
 
@@ -582,32 +646,32 @@ export default function App() {
                     </label>
                     {form.serialNumber.length > 1 && (
                       <button
-                      type="button"
-                      onClick={() => handleDeleteSerialQ(index)}
-                      className="delete-serialQ-btn"
-                      aria-label={`Delete serial number ${index + 1}`}
-                      style={{
-                        backgroundColor: '#dc3545', // Bootstrap danger red
-                        border: '1px solid #dc3545',
-                        color: '#fff',
-                        padding: '6px 10px',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                      onMouseOver={(e) => {
-                        e.currentTarget.style.backgroundColor = '#c82333';
-                        e.currentTarget.style.borderColor = '#bd2130';
-                      }}
-                      onMouseOut={(e) => {
-                        e.currentTarget.style.backgroundColor = '#dc3545';
-                        e.currentTarget.style.borderColor = '#dc3545';
-                      }}
-                    >
-                      <Trash size={17} />
-                    </button>                    
+                        type="button"
+                        onClick={() => handleDeleteSerialQ(index)}
+                        className="delete-serialQ-btn"
+                        aria-label={`Delete serial number ${index + 1}`}
+                        style={{
+                          backgroundColor: "#dc3545", // Bootstrap danger red
+                          border: "1px solid #dc3545",
+                          color: "#fff",
+                          padding: "6px 10px",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.backgroundColor = "#c82333"
+                          e.currentTarget.style.borderColor = "#bd2130"
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.backgroundColor = "#dc3545"
+                          e.currentTarget.style.borderColor = "#dc3545"
+                        }}
+                      >
+                        <Trash size={17} />
+                      </button>
                     )}
                   </div>
                 ))}
@@ -617,13 +681,57 @@ export default function App() {
               </button>
             </div>
             <div className="submit-btn">
-              <button type="submit">{ loading.inventory ? (
-                <>
-                  <p>Adding...</p>
-                </>
-              ) : (
-                'Add to inventory'
-              )}</button>
+              <button type="submit">
+                {loading.inventory ? (
+                  <>
+                    <p>Adding...</p>
+                  </>
+                ) : (
+                  "Add to inventory"
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Add new model */}
+        <div className="add-information-container">
+          <form onSubmit={handleModelSubmit}>
+            <div className="input-container">
+              <h1>Add New Product Model 📱</h1>
+              <div className="input-container-box">
+                <label>
+                  <p>PRODUCT NAME</p>
+                  <input
+                    type="text"
+                    name="productName"
+                    placeholder="PRODUCT NAME..."
+                    value={modelForm.productName}
+                    onChange={(e) => setModelForm({ ...modelForm, productName: e.target.value })}
+                  />
+                </label>
+                <label>
+                  <p>BARCODE ID</p>
+                  <input
+                    type="text"
+                    name="barcodeId"
+                    placeholder="BARCODE ID..."
+                    value={modelForm.barcodeId}
+                    onChange={(e) => setModelForm({ ...modelForm, barcodeId: e.target.value })}
+                  />
+                </label>
+              </div>
+            </div>
+            <div className="submit-btn model">
+              <button type="submit">
+                {modelLoading ? (
+                  <>
+                    <p>Adding...</p>
+                  </>
+                ) : (
+                  "Add New Model"
+                )}
+              </button>
             </div>
           </form>
         </div>
@@ -637,13 +745,15 @@ export default function App() {
             onChange={(e) => setSearchSerial(e.target.value)}
             placeholder="Enter serial number"
           />
-          <button onClick={handleSearch}>{ loading.search ? (
-            <>
-              <p>Searching...</p>
-            </>
-          ) : (
-            'Search'
-          ) }</button>
+          <button onClick={handleSearch}>
+            {loading.search ? (
+              <>
+                <p>Searching...</p>
+              </>
+            ) : (
+              "Search"
+            )}
+          </button>
           {searchResult ? (
             <div className="search-results">
               <h3>Details for {searchResult.serial_number}</h3>
@@ -661,11 +771,7 @@ export default function App() {
               </p>
             </div>
           ) : (
-            searchSerial && <p className="search-error">{ loading ? (
-              ''
-            ) : (
-              `No result found for ${searchSerial}`
-            )}</p>
+            searchSerial && <p className="search-error">{loading ? "" : `No result found for ${searchSerial}`}</p>
           )}
         </div>
 
