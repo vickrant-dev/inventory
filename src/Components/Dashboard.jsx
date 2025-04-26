@@ -302,48 +302,54 @@ export default function App() {
 
   const handleSerialNumberChange = (e, index) => {
     const input = e.target.value.trim()
-    const [serialPart, qtyPart] = input.split("_") // First split the input
+    const newSerialNumbers = [...form.serialNumber]
+    newSerialNumbers[index] = input
+
+    setForm((prevForm) => ({
+      ...prevForm,
+      serialNumber: newSerialNumbers,
+    }))
+  }
+
+  const processSerialNumber = async (index) => {
+    const serialInput = form.serialNumber[index].trim()
+    const [serialPart, qtyPart] = serialInput.split("_") // Split the input
 
     const newSerialNumbers = [...form.serialNumber]
     const newQuantities = [...form.quantity]
 
-    newSerialNumbers[index] = serialPart // Save only the serial part now
+    newSerialNumbers[index] = serialPart // Save only the serial part
 
     if (qtyPart) {
       newQuantities[index] = Number(qtyPart)
     }
 
-    // Update form immediately
+    // Update form with processed values
     setForm((prevForm) => ({
       ...prevForm,
       serialNumber: newSerialNumbers,
       quantity: newQuantities,
     }))
 
-    // Clear the previous timer for THIS index
-    clearTimeout(debounceTimers[index])
+    // Process model code
+    const modelCode = serialPart.split("-")[0]
 
-    // Set a new timer for THIS index
-    debounceTimers[index] = setTimeout(async () => {
-      const modelCode = serialPart.split("-")[0]
+    if (modelCode) {
+      const { data, error } = await supabase
+        .from("products")
+        .select("product_name")
+        .eq("barcode_id", modelCode)
+        .single()
 
-      if (modelCode) {
-        const { data, error } = await supabase
-          .from("products")
-          .select("product_name")
-          .eq("barcode_id", modelCode)
-          .single()
-
-        if (error) {
-          console.error(`Error fetching item name for index ${index}:`, error.message)
-        } else if (data) {
-          setForm((prevForm) => ({
-            ...prevForm,
-            item: data.product_name,
-          }))
-        }
+      if (error) {
+        console.error(`Error fetching item name for index ${index}:`, error.message)
+      } else if (data) {
+        setForm((prevForm) => ({
+          ...prevForm,
+          item: data.product_name,
+        }))
       }
-    }, 2000) // 2000ms delay
+    }
   }
 
   const handleQuantityChange = (e, index) => {
@@ -529,297 +535,408 @@ export default function App() {
   // ⭐
 
   return (
-    <>
-      <div className="main-container">
-        {/* User Login/Logout */}
-        <div className="user-container">
-          <div className="left">
-            <h1>
-              Welcome Back <span>{user_username}!</span> 👋🏼
-            </h1>
-          </div>
-          <div className="right">
-            <button onClick={handleLogout}>Logout</button>
-          </div>
-        </div>
-
-        {/* Add new inventory */}
-        <div className="add-information-container">
-          <form onSubmit={handleConfirmSubmit}>
-            <div className="input-container">
-              <h1>Enter Product Information 📄</h1>
-              <div className="input-container-box">
-                {["item"].map((field) => (
-                  <label>
-                    <p>{field.toUpperCase()}</p>
-                    <input
-                      type="text"
-                      name={field}
-                      placeholder={`${field.toUpperCase()}...`}
-                      value={form[field]}
-                      onChange={handleInputChange}
-                      onBlur={() =>
-                        setTimeout(() => {
-                          setActiveField(null)
-                        }, 100)
-                      }
-                    />
-
-                    {activeField === field && dropDownData[field]?.length > 0 && (
-                      <ul className="dropdown">
-                        {dropDownData[field].slice(0, 5).map((item, index) => (
-                          <li key={index} onClick={() => handleSelectItem(field, item)}>
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </label>
-                ))}
-                {["customer"].map((field) => (
-                  <label>
-                    <p>CUSTOMER NAME</p>
-                    <input
-                      type="text"
-                      name={field}
-                      placeholder={`CUSTOMER NAME...`}
-                      value={form[field]}
-                      onChange={handleInputChange}
-                      onBlur={() =>
-                        setTimeout(() => {
-                          setActiveField(null)
-                        }, 100)
-                      }
-                    />
-
-                    {activeField === field && dropDownData[field]?.length > 0 && (
-                      <ul className="dropdown">
-                        {dropDownData[field].slice(0, 5).map((item, index) => (
-                          <li key={index} onClick={() => handleSelectItem(field, item)}>
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </label>
-                ))}
-                <label>
-                  <p>INVOICE NO</p>
-                  <input
-                    type="text"
-                    name="invoiceNo"
-                    placeholder="INVOICE NO..."
-                    value={form.invoiceNo}
-                    onChange={handleInputChange}
-                  />
-                </label>
-                <label>
-                  <p>INVOICE DATE</p>
-                  <input type="date" name="invoiceDate" value={form.invoiceDate} onChange={handleInputChange} />
-                </label>
-              </div>
-            </div>
-            <div className="input-second-container">
-              <h2>Serial Numbers 🔢</h2>
-              <div className="input-second-box">
-                {form.serialNumber.map((serial, index) => (
-                  <div className="serial-quantity-inputs" key={index}>
-                    <label>
-                      <p>Serial Number #{index + 1}</p>
-                      <input
-                        type="text"
-                        name={`serialNumber-${index}`}
-                        value={serial}
-                        onChange={(e) => handleSerialNumberChange(e, index)}
-                        placeholder={`SERIAL NUMBER #${index + 1}...`}
-                      />
-                    </label>
-                    <label>
-                      <p>Quantity for Serial Number #{index + 1}</p>
-                      <input
-                        type="number"
-                        name={`quantity-${index}`}
-                        value={form.quantity[index] || ""}
-                        onChange={(e) => handleQuantityChange(e, index)}
-                        max={40}
-                      />
-                    </label>
-                    {form.serialNumber.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteSerialQ(index)}
-                        className="delete-serialQ-btn"
-                        aria-label={`Delete serial number ${index + 1}`}
-                        style={{
-                          backgroundColor: "#dc3545", // Bootstrap danger red
-                          border: "1px solid #dc3545",
-                          color: "#fff",
-                          padding: "6px 10px",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                        onMouseOver={(e) => {
-                          e.currentTarget.style.backgroundColor = "#c82333"
-                          e.currentTarget.style.borderColor = "#bd2130"
-                        }}
-                        onMouseOut={(e) => {
-                          e.currentTarget.style.backgroundColor = "#dc3545"
-                          e.currentTarget.style.borderColor = "#dc3545"
-                        }}
-                      >
-                        <Trash size={17} />
-                      </button>
-                    )}
+      <>
+          <div className="main-container">
+              {/* User Login/Logout */}
+              <div className="user-container">
+                  <div className="left">
+                      <h1>
+                          Welcome Back <span>{user_username}!</span> 👋🏼
+                      </h1>
                   </div>
-                ))}
+                  <div className="right">
+                      <button onClick={handleLogout}>Logout</button>
+                  </div>
               </div>
-              <button type="button" onClick={handleAddSerialQ} className="add-serialQ-btn">
-                Add New Serial
-              </button>
-            </div>
-            <div className="submit-btn">
-              <button type="submit">
-                {loading.inventory ? (
-                  <>
-                    <p>Adding...</p>
-                  </>
-                ) : (
-                  "Add to inventory"
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
 
-        {/* Add new model */}
-        <div className="add-information-container">
-          <form onSubmit={handleModelSubmit}>
-            <div className="input-container">
-              <h1>Add New Product Model 📱</h1>
-              <div className="input-container-box">
-                <label>
-                  <p>PRODUCT NAME</p>
-                  <input
-                    type="text"
-                    name="productName"
-                    placeholder="PRODUCT NAME..."
-                    value={modelForm.productName}
-                    onChange={(e) => setModelForm({ ...modelForm, productName: e.target.value })}
-                  />
-                </label>
-                <label>
-                  <p>BARCODE ID</p>
-                  <input
-                    type="text"
-                    name="barcodeId"
-                    placeholder="BARCODE ID..."
-                    value={modelForm.barcodeId}
-                    onChange={(e) => setModelForm({ ...modelForm, barcodeId: e.target.value })}
-                  />
-                </label>
+              {/* Add new inventory */}
+              <div className="add-information-container">
+                  <form onSubmit={handleConfirmSubmit}>
+                      <div className="input-container">
+                          <h1>Enter Product Information 📄</h1>
+                          <div className="input-container-box">
+                              {["item"].map((field) => (
+                                  <label>
+                                      <p>{field.toUpperCase()}</p>
+                                      <input
+                                          type="text"
+                                          name={field}
+                                          placeholder={`${field.toUpperCase()}...`}
+                                          value={form[field]}
+                                          onChange={handleInputChange}
+                                          onBlur={() =>
+                                              setTimeout(() => {
+                                                  setActiveField(null);
+                                              }, 100)
+                                          }
+                                      />
+
+                                      {activeField === field &&
+                                          dropDownData[field]?.length > 0 && (
+                                              <ul className="dropdown">
+                                                  {dropDownData[field]
+                                                      .slice(0, 5)
+                                                      .map((item, index) => (
+                                                          <li
+                                                              key={index}
+                                                              onClick={() =>
+                                                                  handleSelectItem(
+                                                                      field,
+                                                                      item
+                                                                  )
+                                                              }
+                                                          >
+                                                              {item}
+                                                          </li>
+                                                      ))}
+                                              </ul>
+                                          )}
+                                  </label>
+                              ))}
+                              {["customer"].map((field) => (
+                                  <label>
+                                      <p>CUSTOMER NAME</p>
+                                      <input
+                                          type="text"
+                                          name={field}
+                                          placeholder={`CUSTOMER NAME...`}
+                                          value={form[field]}
+                                          onChange={handleInputChange}
+                                          onBlur={() =>
+                                              setTimeout(() => {
+                                                  setActiveField(null);
+                                              }, 100)
+                                          }
+                                      />
+
+                                      {activeField === field &&
+                                          dropDownData[field]?.length > 0 && (
+                                              <ul className="dropdown">
+                                                  {dropDownData[field]
+                                                      .slice(0, 5)
+                                                      .map((item, index) => (
+                                                          <li
+                                                              key={index}
+                                                              onClick={() =>
+                                                                  handleSelectItem(
+                                                                      field,
+                                                                      item
+                                                                  )
+                                                              }
+                                                          >
+                                                              {item}
+                                                          </li>
+                                                      ))}
+                                              </ul>
+                                          )}
+                                  </label>
+                              ))}
+                              <label>
+                                  <p>INVOICE NO</p>
+                                  <input
+                                      type="text"
+                                      name="invoiceNo"
+                                      placeholder="INVOICE NO..."
+                                      value={form.invoiceNo}
+                                      onChange={handleInputChange}
+                                  />
+                              </label>
+                              <label>
+                                  <p>INVOICE DATE</p>
+                                  <input
+                                      type="date"
+                                      name="invoiceDate"
+                                      value={form.invoiceDate}
+                                      onChange={handleInputChange}
+                                  />
+                              </label>
+                          </div>
+                      </div>
+                      <div className="input-second-container">
+                          <h2>Serial Numbers 🔢</h2>
+                          <div className="input-second-box">
+                              {form.serialNumber.map((serial, index) => (
+                                  <div
+                                      className="serial-quantity-inputs"
+                                      key={index}
+                                  >
+                                      <label>
+                                          <p>Serial Number #{index + 1}</p>
+                                          <div
+                                              style={{
+                                                  display: "flex",
+                                                  alignItems: 'center',
+                                                  height: '52px',
+                                                  gap: "8px",
+                                              }}
+                                          >
+                                              <input
+                                                  type="text"
+                                                  name={`serialNumber-${index}`}
+                                                  value={serial}
+                                                  onChange={(e) =>
+                                                      handleSerialNumberChange(
+                                                          e,
+                                                          index
+                                                      )
+                                                  }
+                                                  placeholder={`SERIAL NUMBER #${
+                                                      index + 1
+                                                  }...`}
+                                              />
+                                              <button
+                                                  type="button"
+                                                  onClick={() =>
+                                                      processSerialNumber(index)
+                                                  }
+                                                  style={{
+                                                      backgroundColor:
+                                                          "#ffa600",
+                                                      border: "1px solid #ffa600",
+                                                      color: "#fff",
+                                                      padding: "0px 12px",
+                                                      height: '50px',
+                                                      translate: '0 -15px',
+                                                      borderRadius: "6px",
+                                                      cursor: "pointer",
+                                                  }}
+                                              >
+                                                  +
+                                              </button>
+                                          </div>
+                                      </label>
+                                      <label>
+                                          <p>
+                                              Quantity for Serial Number #
+                                              {index + 1}
+                                          </p>
+                                          <input
+                                              type="number"
+                                              name={`quantity-${index}`}
+                                              value={form.quantity[index] || ""}
+                                              onChange={(e) =>
+                                                  handleQuantityChange(e, index)
+                                              }
+                                              max={40}
+                                          />
+                                      </label>
+                                      {form.serialNumber.length > 1 && (
+                                          <button
+                                              type="button"
+                                              onClick={() =>
+                                                  handleDeleteSerialQ(index)
+                                              }
+                                              className="delete-serialQ-btn"
+                                              aria-label={`Delete serial number ${
+                                                  index + 1
+                                              }`}
+                                              style={{
+                                                  backgroundColor: "#dc3545", // Bootstrap danger red
+                                                  border: "1px solid #dc3545",
+                                                  color: "#fff",
+                                                  padding: "6px 10px",
+                                                  borderRadius: "4px",
+                                                  cursor: "pointer",
+                                                  display: "flex",
+                                                  alignItems: "center",
+                                                  justifyContent: "center",
+                                              }}
+                                              onMouseOver={(e) => {
+                                                  e.currentTarget.style.backgroundColor =
+                                                      "#c82333";
+                                                  e.currentTarget.style.borderColor =
+                                                      "#bd2130";
+                                              }}
+                                              onMouseOut={(e) => {
+                                                  e.currentTarget.style.backgroundColor =
+                                                      "#dc3545";
+                                                  e.currentTarget.style.borderColor =
+                                                      "#dc3545";
+                                              }}
+                                          >
+                                              <Trash size={17} />
+                                          </button>
+                                      )}
+                                  </div>
+                              ))}
+                          </div>
+                          <button
+                              type="button"
+                              onClick={handleAddSerialQ}
+                              className="add-serialQ-btn"
+                          >
+                              Add New Serial
+                          </button>
+                      </div>
+                      <div className="submit-btn">
+                          <button type="submit">
+                              {loading.inventory ? (
+                                  <>
+                                      <p>Adding...</p>
+                                  </>
+                              ) : (
+                                  "Add to inventory"
+                              )}
+                          </button>
+                      </div>
+                  </form>
               </div>
-            </div>
-            <div className="submit-btn model">
-              <button type="submit">
-                {modelLoading ? (
-                  <>
-                    <p>Adding...</p>
-                  </>
-                ) : (
-                  "Add New Model"
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
 
-        {/* Lookup Function */}
-        <div className="lookup-container">
-          <h1>SEARCH FOR YOUR SERIAL NUMBER 🔎</h1>
-          <input
-            type="text"
-            value={searchSerial}
-            onChange={(e) => setSearchSerial(e.target.value)}
-            placeholder="Enter serial number"
-          />
-          <button onClick={handleSearch}>
-            {loading.search ? (
-              <>
-                <p>Searching...</p>
-              </>
-            ) : (
-              "Search"
-            )}
-          </button>
-          {searchResult ? (
-            <div className="search-results">
-              <h3>Details for {searchResult.serial_number}</h3>
-              <p>
-                <strong>Item:</strong> {searchResult.item}
-              </p>
-              <p className="search-customer">
-                <strong>Customer:</strong> {searchResult.customer}
-              </p>
-              <p>
-                <strong>Invoice No:</strong> {searchResult.invoice_no}
-              </p>
-              <p>
-                <strong>Invoice Date:</strong> {searchResult.invoice_date}
-              </p>
-            </div>
-          ) : (
-            searchSerial && <p className="search-error">{loading ? "" : `No result found for ${searchSerial}`}</p>
-          )}
-        </div>
+              {/* Add new model */}
+              <div className="add-information-container">
+                  <form onSubmit={handleModelSubmit}>
+                      <div className="input-container">
+                          <h1>Add New Product Model 📱</h1>
+                          <div className="input-container-box">
+                              <label>
+                                  <p>PRODUCT NAME</p>
+                                  <input
+                                      type="text"
+                                      name="productName"
+                                      placeholder="PRODUCT NAME..."
+                                      value={modelForm.productName}
+                                      onChange={(e) =>
+                                          setModelForm({
+                                              ...modelForm,
+                                              productName: e.target.value,
+                                          })
+                                      }
+                                  />
+                              </label>
+                              <label>
+                                  <p>BARCODE ID</p>
+                                  <input
+                                      type="text"
+                                      name="barcodeId"
+                                      placeholder="BARCODE ID..."
+                                      value={modelForm.barcodeId}
+                                      onChange={(e) =>
+                                          setModelForm({
+                                              ...modelForm,
+                                              barcodeId: e.target.value,
+                                          })
+                                      }
+                                  />
+                              </label>
+                          </div>
+                      </div>
+                      <div className="submit-btn model">
+                          <button type="submit">
+                              {modelLoading ? (
+                                  <>
+                                      <p>Adding...</p>
+                                  </>
+                              ) : (
+                                  "Add New Model"
+                              )}
+                          </button>
+                      </div>
+                  </form>
+              </div>
 
-        {/* Display inventory */}
-        <div className="table-container">
-          <h4>All Products 📦</h4>
-          <div className="tb-info-row">
-            <p className="total-products">Total Entries: {inventory.length}</p>
-            <select id="backupFormat">
-              <option value="csv">CSV</option>
-              <option value="pdf">PDF</option>
-            </select>
-            <button onClick={handleBackup}>Backup</button>
+              {/* Lookup Function */}
+              <div className="lookup-container">
+                  <h1>SEARCH FOR YOUR SERIAL NUMBER 🔎</h1>
+                  <input
+                      type="text"
+                      value={searchSerial}
+                      onChange={(e) => setSearchSerial(e.target.value)}
+                      placeholder="Enter serial number"
+                  />
+                  <button onClick={handleSearch}>
+                      {loading.search ? (
+                          <>
+                              <p>Searching...</p>
+                          </>
+                      ) : (
+                          "Search"
+                      )}
+                  </button>
+                  {searchResult ? (
+                      <div className="search-results">
+                          <h3>Details for {searchResult.serial_number}</h3>
+                          <p>
+                              <strong>Item:</strong> {searchResult.item}
+                          </p>
+                          <p className="search-customer">
+                              <strong>Customer:</strong> {searchResult.customer}
+                          </p>
+                          <p>
+                              <strong>Invoice No:</strong>{" "}
+                              {searchResult.invoice_no}
+                          </p>
+                          <p>
+                              <strong>Invoice Date:</strong>{" "}
+                              {searchResult.invoice_date}
+                          </p>
+                      </div>
+                  ) : (
+                      searchSerial && (
+                          <p className="search-error">
+                              {loading
+                                  ? ""
+                                  : `No result found for ${searchSerial}`}
+                          </p>
+                      )
+                  )}
+              </div>
+
+              {/* Display inventory */}
+              <div className="table-container">
+                  <h4>All Products 📦</h4>
+                  <div className="tb-info-row">
+                      <p className="total-products">
+                          Total Entries: {inventory.length}
+                      </p>
+                      <select id="backupFormat">
+                          <option value="csv">CSV</option>
+                          <option value="pdf">PDF</option>
+                      </select>
+                      <button onClick={handleBackup}>Backup</button>
+                  </div>
+                  <table border="1">
+                      <thead>
+                          <tr>
+                              <th>Item</th>
+                              <th>Serial Number</th>
+                              <th>Customer</th>
+                              <th>Invoice No</th>
+                              <th>Invoice Date</th>
+                              <th>Actions</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          {inventory
+                              .slice()
+                              .sort(
+                                  (a, b) =>
+                                      new Date(b.invoice_date) -
+                                      new Date(a.invoice_date)
+                              )
+                              .slice()
+                              .map((data) => (
+                                  <tr key={data.id}>
+                                      <td>{data.item}</td>
+                                      <td>{data.serial_number}</td>
+                                      <td>{data.customer}</td>
+                                      <td>{data.invoice_no}</td>
+                                      <td>{data.invoice_date}</td>
+                                      <td>
+                                          <button
+                                              className="del-btn"
+                                              onClick={() =>
+                                                  deleteEntry(data.id)
+                                              }
+                                          >
+                                              Delete
+                                          </button>
+                                      </td>
+                                  </tr>
+                              ))}
+                      </tbody>
+                  </table>
+              </div>
           </div>
-          <table border="1">
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th>Serial Number</th>
-                <th>Customer</th>
-                <th>Invoice No</th>
-                <th>Invoice Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {inventory
-                .slice()
-                .sort((a, b) => new Date(b.invoice_date) - new Date(a.invoice_date))
-                .slice()
-                .map((data) => (
-                  <tr key={data.id}>
-                    <td>{data.item}</td>
-                    <td>{data.serial_number}</td>
-                    <td>{data.customer}</td>
-                    <td>{data.invoice_no}</td>
-                    <td>{data.invoice_date}</td>
-                    <td>
-                      <button className="del-btn" onClick={() => deleteEntry(data.id)}>
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </>
-  )
+      </>
+  );
 }
