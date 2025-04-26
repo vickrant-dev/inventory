@@ -619,7 +619,11 @@ export default function App() {
               </p>
             </div>
           ) : (
-            searchSerial && <p className="search-error">No result found for {searchSerial}</p>
+            searchSerial && <p className="search-error">{ loading ? (
+              ''
+            ) : (
+              `No result found for ${searchSerial}`
+            )}</p>
           )}
         </div>
 
