@@ -692,7 +692,7 @@ export default function App() {
                                         key={index}
                                     >
                                         <label>
-                                            <p>Item #{index + 1}</p>
+                                            <p>Model</p>
                                             <div
                                                 style={{
                                                     display: "flex",
@@ -706,9 +706,7 @@ export default function App() {
                                                     name={`serialNumber-${index}`}
                                                     value={form.item[index]}
                                                     readOnly
-                                                    placeholder={`Item #${
-                                                        index + 1
-                                                    }`}
+                                                    placeholder={`Model`}
                                                 />
                                             </div>
                                         </label>

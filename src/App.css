@@ -245,8 +245,8 @@ body {
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     padding: 0;
-    margin-top: 4px;
-    z-index: 10;
+    margin-top: 10px;
+    z-index: 999;
 }
 
 .main-container .add-information-container form .input-container label .dropdown li {
