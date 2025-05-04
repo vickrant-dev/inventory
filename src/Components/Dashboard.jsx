@@ -138,7 +138,7 @@ export default function App() {
                 handleSubmit();
                 return;
             } else {
-                console.log("Submission cancelled.");
+                // console.log("Submission cancelled.");
                 return;
             }
         } else {
@@ -152,6 +152,9 @@ export default function App() {
             ...prev,
             inventory: true,
         }));
+        
+        // Check if each of those serials exist already after iterating
+
 
         try {
             let newEntries = [];
@@ -184,7 +187,7 @@ export default function App() {
                     });
                 }
 
-                console.log('newEntries:', newEntries);
+                // console.log('newEntries:', newEntries);
             });
 
             const { data: existingData, error: fetchError } = await supabase
@@ -334,7 +337,7 @@ export default function App() {
     };
 
     useEffect(() => {
-        console.log(form);
+        // console.log(form);
         // console.log(inventory);
     }, [form, inventory]);
 
@@ -393,8 +396,8 @@ export default function App() {
                     ...prevForm,
                     item: newItem,
                 }));
-                console.log(newItem[index]);
-                console.log(form);
+                // console.log(newItem[index]);
+                // console.log(form);
             }
         }
     };
