@@ -344,7 +344,7 @@ export default function App() {
     const debounceTimers = {};
 
     const handleSerialNumberChange = (e, index) => {
-        const input = e.target.value.trim();
+        const input = e.target.value.trim().toUpperCase();
         const newSerialNumbers = [...form.serialNumber];
         newSerialNumbers[index] = input;
 
@@ -727,6 +727,7 @@ export default function App() {
                                                     type="text"
                                                     name={`serialNumber-${index}`}
                                                     value={serial}
+                                                    // style={{textTransform: 'uppercase'}}
                                                     onChange={(e) =>
                                                         handleSerialNumberChange(
                                                             e,
@@ -900,7 +901,7 @@ export default function App() {
                     <input
                         type="text"
                         value={searchSerial}
-                        onChange={(e) => setSearchSerial(e.target.value)}
+                        onChange={(e) => setSearchSerial(e.target.value.toUpperCase())}
                         placeholder="Enter serial number"
                     />
                     <button onClick={handleSearch}>
