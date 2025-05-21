@@ -790,7 +790,7 @@ tbody tr:hover {
 }
 
 .backup-controls .choose-customer label input {
-    width: fit-content;
+    width: 200px;
     padding: 0.75rem 1rem;
     border: 1px solid #e2e8f0;
     background-color: #f8fafc;
