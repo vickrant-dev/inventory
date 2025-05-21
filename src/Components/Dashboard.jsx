@@ -1,11 +1,12 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import "../App.css";
 import { useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import { createClient } from "@supabase/supabase-js";
-import { Loader, Plus, Trash } from "lucide-react";
-import { supabase } from '../utils/supabase';
+import { Plus, Trash } from "lucide-react";
+import { supabase } from "../utils/supabase";
 
 export default function App() {
     const [form, setForm] = useState({
@@ -28,6 +29,9 @@ export default function App() {
         search: false,
     });
 
+    // New state for active segment
+    const [activeSegment, setActiveSegment] = useState("customer");
+
     const navigate = useNavigate();
 
     const user_username = localStorage.getItem("username");
@@ -37,6 +41,10 @@ export default function App() {
         barcodeId: "",
     });
     const [modelLoading, setModelLoading] = useState(false);
+
+    const [backupCustomer, setBackupCustomer] = useState("");
+
+    const [filteredTableLength, setFilteredTableLength] = useState(null);
 
     useEffect(() => {
         const isAuthenticated = localStorage.getItem("isAuthenticated");
@@ -71,6 +79,7 @@ export default function App() {
                 console.error("Error fetching inventory:", error.message);
             } else {
                 setInventory(data);
+                setFilteredTableLength(data.length);
             }
         };
         fetchInventory();
@@ -107,10 +116,47 @@ export default function App() {
         } // ⭐
     };
 
+    const handleCustomerBackupChange = (e) => {
+        const { name, value } = e.target;
+        setBackupCustomer(value);
+
+        if (name) {
+            setActiveField(name);
+            const filteredResults = inventory
+                .map((item) => item[name])
+                .filter(
+                    (val, index, self) => val && self.indexOf(val) === index
+                )
+                .filter((val) =>
+                    val.toLowerCase().includes(value.toLowerCase())
+                )
+                .sort((a, b) => {
+                    const aStartsWithInput = a
+                        .toLowerCase()
+                        .startsWith(value.toLowerCase());
+                    const bStartsWithInput = b
+                        .toLowerCase()
+                        .startsWith(value.toLowerCase());
+
+                    if (aStartsWithInput && !bStartsWithInput) return -1;
+                    if (!aStartsWithInput && bStartsWithInput) return 1;
+                    return a.localeCompare(b);
+                });
+
+            setDropDownData({ ...dropDownData, [name]: filteredResults });
+        } // ⭐
+
+    }
+
     const handleSelectItem = (name, value) => {
         setForm((prevForm) => ({ ...prevForm, [name]: value }));
         setActiveField(null);
     };
+
+    const handleSelectItemBackup = (name, value) => {
+        setBackupCustomer(value);
+        setActiveField(null);
+    }
 
     const handleConfirmSubmit = (e) => {
         e.preventDefault();
@@ -152,9 +198,8 @@ export default function App() {
             ...prev,
             inventory: true,
         }));
-        
-        // Check if each of those serials exist already after iterating
 
+        // Check if each of those serials exist already after iterating
 
         try {
             let newEntries = [];
@@ -413,7 +458,7 @@ export default function App() {
             ...form,
             serialNumber: [...form.serialNumber, ""],
             quantity: [...form.quantity, ""],
-            item: [...form.item, ""]
+            item: [...form.item, ""],
         });
     };
 
@@ -430,7 +475,7 @@ export default function App() {
             ...form,
             serialNumber: newSerialNumbers,
             quantity: newQuantities,
-            item: newItem
+            item: newItem,
         });
     };
 
@@ -522,26 +567,60 @@ export default function App() {
 
         numRows = Math.min(numRows, inventory.length); // Ensure it doesn't exceed inventory length
 
-        const sortedInventory = inventory.slice().sort((a, b) => {
-            return new Date(b.invoice_date) - new Date(a.invoice_date);
-        });
-
-        const selectedEntries = sortedInventory.slice(0, numRows);
-
-        let csvContent = "data:text/csv;charset=utf-8,";
-        csvContent += "Item,Serial Number,Customer,Invoice No,Invoice Date\n"; // CSV headers
-
-        selectedEntries.forEach((row) => {
-            csvContent += `${row.item},${row.serial_number},${row.customer},${row.invoice_no},${row.invoice_date}\n`;
-        });
-
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `inventory_backup_${numRows}_rows.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        if (backupCustomer === "") {
+            const sortedInventory = inventory.slice().sort((a, b) => {
+                return new Date(b.invoice_date) - new Date(a.invoice_date);
+            });
+    
+            const selectedEntries = sortedInventory.slice(0, numRows);
+    
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Item,Serial Number,Customer,Invoice No,Invoice Date\n"; // CSV headers
+    
+            selectedEntries.forEach((row) => {
+                csvContent += `${row.item},${row.serial_number},${row.customer},${row.invoice_no},${row.invoice_date}\n`;
+            });
+    
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `inventory_backup_${numRows}_rows.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        else {
+            const filteredInventory = inventory.filter(
+                (entry) =>
+                    entry.customer.toLowerCase() === backupCustomer.toLowerCase()
+            );
+    
+            if (filteredInventory.length === 0) {
+                alert(`No records found for customer "${backupCustomer}".`);
+                return;
+            }
+    
+            const sortedInventory = filteredInventory.slice().sort((a, b) => {
+                return new Date(b.invoice_date) - new Date(a.invoice_date);
+            });
+    
+            const selectedEntries = sortedInventory.slice(0, numRows);
+    
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Item,Serial Number,Customer,Invoice No,Invoice Date\n"; // CSV headers
+    
+            selectedEntries.forEach((row) => {
+                csvContent += `${row.item},${row.serial_number},${row.customer},${row.invoice_no},${row.invoice_date}\n`;
+            });
+    
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `inventory_backup_${backupCustomer}_${numRows}_rows.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
     }; // ⭐
 
     const backupPDF = () => {
@@ -559,50 +638,109 @@ export default function App() {
 
         numRows = Math.min(numRows, inventory.length);
 
-        const sortedInventory = inventory.slice().sort((a, b) => {
-            return new Date(b.invoice_date) - new Date(a.invoice_date);
-        });
+        if (backupCustomer === "") {
+            const sortedInventory = inventory.slice().sort((a, b) => {
+                return new Date(b.invoice_date) - new Date(a.invoice_date);
+            });
+    
+            const selectedEntries = sortedInventory.slice(0, numRows);
+    
+            const doc = new jsPDF();
+            let y = 20;
+            const marginTop = 10;
+            const pageHeight = doc.internal.pageSize.height;
+    
+            const addHeaders = () => {
+                doc.setFontSize(12);
+                doc.text("Inventory Backup", 14, marginTop);
+                doc.line(10, marginTop + 2, 200, marginTop + 2);
+    
+                doc.text("Item", 10, y);
+                doc.text("Serial Number", 50, y);
+                doc.text("Customer", 100, y);
+                doc.text("Invoice No", 150, y);
+                doc.text("Invoice Date", 180, y);
+    
+                y += 10;
+            };
+    
+            addHeaders();
+    
+            selectedEntries.forEach((row, index) => {
+                if (y + 10 > pageHeight - 10) {
+                    // Check if new row fits on the page
+                    doc.addPage();
+                    y = marginTop + 10; // Reset y for new page
+                    addHeaders(); // Re-add headers for new page
+                }
+    
+                doc.text(row.item, 10, y);
+                doc.text(row.serial_number, 50, y);
+                doc.text(row.customer, 100, y);
+                doc.text(row.invoice_no, 150, y);
+                doc.text(row.invoice_date, 180, y);
+                y += 10;
+            });
+    
+            doc.save(`inventory_backup_${backupCustomer}_${numRows}_rows.pdf`);
+        }
 
-        const selectedEntries = sortedInventory.slice(0, numRows);
-
-        const doc = new jsPDF();
-        let y = 20;
-        const marginTop = 10;
-        const pageHeight = doc.internal.pageSize.height;
-
-        const addHeaders = () => {
-            doc.setFontSize(12);
-            doc.text("Inventory Backup", 14, marginTop);
-            doc.line(10, marginTop + 2, 200, marginTop + 2);
-
-            doc.text("Item", 10, y);
-            doc.text("Serial Number", 50, y);
-            doc.text("Customer", 100, y);
-            doc.text("Invoice No", 150, y);
-            doc.text("Invoice Date", 180, y);
-
-            y += 10;
-        };
-
-        addHeaders();
-
-        selectedEntries.forEach((row, index) => {
-            if (y + 10 > pageHeight - 10) {
-                // Check if new row fits on the page
-                doc.addPage();
-                y = marginTop + 10; // Reset y for new page
-                addHeaders(); // Re-add headers for new page
+        else {
+            const filteredInventory = inventory.filter(
+                (entry) => entry.customer.toLowerCase() === backupCustomer.toLowerCase()
+            );
+    
+            if (filteredInventory.length === 0) {
+                alert(`No records found for customer "${backupCustomer}".`);
+                return;
             }
+    
+            const sortedInventory = filteredInventory.slice().sort((a, b) => {
+                return new Date(b.invoice_date) - new Date(a.invoice_date);
+            });
+    
+            const selectedEntries = sortedInventory.slice(0, numRows);
+    
+            const doc = new jsPDF();
+            let y = 20;
+            const marginTop = 10;
+            const pageHeight = doc.internal.pageSize.height;
+    
+            const addHeaders = () => {
+                doc.setFontSize(12);
+                doc.text("Inventory Backup", 14, marginTop);
+                doc.line(10, marginTop + 2, 200, marginTop + 2);
+    
+                doc.text("Item", 10, y);
+                doc.text("Serial Number", 50, y);
+                doc.text("Customer", 100, y);
+                doc.text("Invoice No", 150, y);
+                doc.text("Invoice Date", 180, y);
+    
+                y += 10;
+            };
+    
+            addHeaders();
+    
+            selectedEntries.forEach((row, index) => {
+                if (y + 10 > pageHeight - 10) {
+                    // Check if new row fits on the page
+                    doc.addPage();
+                    y = marginTop + 10; // Reset y for new page
+                    addHeaders(); // Re-add headers for new page
+                }
+    
+                doc.text(row.item, 10, y);
+                doc.text(row.serial_number, 50, y);
+                doc.text(row.customer, 100, y);
+                doc.text(row.invoice_no, 150, y);
+                doc.text(row.invoice_date, 180, y);
+                y += 10;
+            });
+    
+            doc.save(`inventory_backup_${backupCustomer}_${numRows}_rows.pdf`);
+        }
 
-            doc.text(row.item, 10, y);
-            doc.text(row.serial_number, 50, y);
-            doc.text(row.customer, 100, y);
-            doc.text(row.invoice_no, 150, y);
-            doc.text(row.invoice_date, 180, y);
-            y += 10;
-        });
-
-        doc.save(`inventory_backup_${numRows}_rows.pdf`);
     };
     // ⭐
 
@@ -621,21 +759,419 @@ export default function App() {
                     </div>
                 </div>
 
-                {/* Add new inventory */}
-                <div className="add-information-container">
-                    <form onSubmit={handleConfirmSubmit}>
-                        <div className="input-container">
-                            <h1>Enter Product Information 📄</h1>
-                            <div className="input-container-box">
-                                {["customer"].map((field) => (
+                {/* Segmented Control */}
+                <div className="segment-control">
+                    <button
+                        className={`segment-btn ${
+                            activeSegment === "customer" ? "active" : ""
+                        }`}
+                        onClick={() => setActiveSegment("customer")}
+                    >
+                        Customer
+                    </button>
+                    <button
+                        className={`segment-btn ${
+                            activeSegment === "products" ? "active" : ""
+                        }`}
+                        onClick={() => setActiveSegment("products")}
+                    >
+                        Products
+                    </button>
+                    <button
+                        className={`segment-btn ${
+                            activeSegment === "search" ? "active" : ""
+                        }`}
+                        onClick={() => setActiveSegment("search")}
+                    >
+                        Search
+                    </button>
+                    <button
+                        className={`segment-btn ${
+                            activeSegment === "backups" ? "active" : ""
+                        }`}
+                        onClick={() => setActiveSegment("backups")}
+                    >
+                        Backups
+                    </button>
+                    <button
+                        className={`segment-btn ${
+                            activeSegment === "table" ? "active" : ""
+                        }`}
+                        onClick={() => setActiveSegment("table")}
+                    >
+                        Table
+                    </button>
+                </div>
+
+                {/* Customer Section - Add new inventory */}
+                {activeSegment === "customer" && (
+                    <div className="add-information-container">
+                        <form onSubmit={handleConfirmSubmit}>
+                            <div className="input-container">
+                                <h1>Enter Product Information 📄</h1>
+                                <div className="input-container-box">
+                                    {["customer"].map((field) => (
+                                        <label key={field}>
+                                            <p>CUSTOMER NAME</p>
+                                            <input
+                                                type="text"
+                                                name={field}
+                                                placeholder={`CUSTOMER NAME...`}
+                                                value={form[field]}
+                                                onChange={handleInputChange}
+                                                onBlur={() =>
+                                                    setTimeout(() => {
+                                                        setActiveField(null);
+                                                    }, 100)
+                                                }
+                                            />
+
+                                            {activeField === field &&
+                                                dropDownData[field]?.length >
+                                                    0 && (
+                                                    <ul className="dropdown">
+                                                        {dropDownData[field]
+                                                            .slice(0, 5)
+                                                            .map(
+                                                                (
+                                                                    item,
+                                                                    index
+                                                                ) => (
+                                                                    <li
+                                                                        key={
+                                                                            index
+                                                                        }
+                                                                        onClick={() =>
+                                                                            handleSelectItem(
+                                                                                field,
+                                                                                item
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        {item}
+                                                                    </li>
+                                                                )
+                                                            )}
+                                                    </ul>
+                                                )}
+                                        </label>
+                                    ))}
                                     <label>
+                                        <p>INVOICE NO</p>
+                                        <input
+                                            type="text"
+                                            name="invoiceNo"
+                                            placeholder="INVOICE NO..."
+                                            value={form.invoiceNo}
+                                            onChange={handleInputChange}
+                                        />
+                                    </label>
+                                    <label>
+                                        <p>INVOICE DATE</p>
+                                        <input
+                                            type="date"
+                                            name="invoiceDate"
+                                            value={form.invoiceDate}
+                                            onChange={handleInputChange}
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+                            <div className="input-second-container">
+                                <h2>Serial Numbers 🔢</h2>
+                                <div className="input-second-box">
+                                    {form.serialNumber.map((serial, index) => (
+                                        <div
+                                            className="serial-quantity-inputs"
+                                            key={index}
+                                        >
+                                            <label>
+                                                <p>Model</p>
+                                                <div
+                                                    style={{
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        height: "52px",
+                                                        gap: "8px",
+                                                    }}
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        name={`serialNumber-${index}`}
+                                                        value={form.item[index]}
+                                                        readOnly
+                                                        placeholder={`Model`}
+                                                    />
+                                                </div>
+                                            </label>
+                                            <label>
+                                                <p>
+                                                    Serial Number #{index + 1}
+                                                </p>
+                                                <div
+                                                    style={{
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        height: "52px",
+                                                        gap: "8px",
+                                                    }}
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        name={`serialNumber-${index}`}
+                                                        value={serial}
+                                                        onChange={(e) =>
+                                                            handleSerialNumberChange(
+                                                                e,
+                                                                index
+                                                            )
+                                                        }
+                                                        placeholder={`SERIAL NUMBER #${
+                                                            index + 1
+                                                        }...`}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            processSerialNumber(
+                                                                index
+                                                            )
+                                                        }
+                                                        style={{
+                                                            backgroundColor:
+                                                                "#ffa600",
+                                                            border: "1px solid #ffa600",
+                                                            color: "#fff",
+                                                            padding: "0px 12px",
+                                                            height: "50px",
+                                                            translate:
+                                                                "0 -15px",
+                                                            borderRadius: "6px",
+                                                            cursor: "pointer",
+                                                        }}
+                                                    >
+                                                        <Plus size={17} />
+                                                    </button>
+                                                </div>
+                                            </label>
+                                            <label>
+                                                <p>
+                                                    Quantity for Serial Number #
+                                                    {index + 1}
+                                                </p>
+                                                <input
+                                                    type="number"
+                                                    name={`quantity-${index}`}
+                                                    value={
+                                                        form.quantity[index] ||
+                                                        ""
+                                                    }
+                                                    onChange={(e) =>
+                                                        handleQuantityChange(
+                                                            e,
+                                                            index
+                                                        )
+                                                    }
+                                                    max={40}
+                                                />
+                                            </label>
+                                            {form.serialNumber.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleDeleteSerialQ(
+                                                            index
+                                                        )
+                                                    }
+                                                    className="delete-serialQ-btn"
+                                                    aria-label={`Delete serial number ${
+                                                        index + 1
+                                                    }`}
+                                                    style={{
+                                                        backgroundColor:
+                                                            "#dc3545", // Bootstrap danger red
+                                                        border: "1px solid #dc3545",
+                                                        color: "#fff",
+                                                        padding: "7px",
+                                                        borderRadius: "6px",
+                                                        cursor: "pointer",
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        justifyContent:
+                                                            "center",
+                                                    }}
+                                                    onMouseOver={(e) => {
+                                                        e.currentTarget.style.backgroundColor =
+                                                            "#c82333";
+                                                        e.currentTarget.style.borderColor =
+                                                            "#bd2130";
+                                                    }}
+                                                    onMouseOut={(e) => {
+                                                        e.currentTarget.style.backgroundColor =
+                                                            "#dc3545";
+                                                        e.currentTarget.style.borderColor =
+                                                            "#dc3545";
+                                                    }}
+                                                >
+                                                    <Trash size={19} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleAddSerialQ}
+                                    className="add-serialQ-btn"
+                                >
+                                    Add New Serial
+                                </button>
+                            </div>
+                            <div className="submit-btn">
+                                <button type="submit">
+                                    {loading.inventory ? (
+                                        <>
+                                            <p>Adding...</p>
+                                        </>
+                                    ) : (
+                                        "Add to inventory"
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                )}
+
+                {/* Products Section - Add new model */}
+                {activeSegment === "products" && (
+                    <div className="add-information-container">
+                        <form onSubmit={handleModelSubmit}>
+                            <div className="input-container">
+                                <h1>Add New Product Model 📱</h1>
+                                <div className="input-container-box">
+                                    <label>
+                                        <p>PRODUCT NAME</p>
+                                        <input
+                                            type="text"
+                                            name="productName"
+                                            placeholder="PRODUCT NAME..."
+                                            value={modelForm.productName}
+                                            onChange={(e) =>
+                                                setModelForm({
+                                                    ...modelForm,
+                                                    productName: e.target.value,
+                                                })
+                                            }
+                                        />
+                                    </label>
+                                    <label>
+                                        <p>BARCODE ID</p>
+                                        <input
+                                            type="text"
+                                            name="barcodeId"
+                                            placeholder="BARCODE ID..."
+                                            value={modelForm.barcodeId}
+                                            onChange={(e) =>
+                                                setModelForm({
+                                                    ...modelForm,
+                                                    barcodeId: e.target.value,
+                                                })
+                                            }
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+                            <div className="submit-btn model">
+                                <button type="submit">
+                                    {modelLoading ? (
+                                        <>
+                                            <p>Adding...</p>
+                                        </>
+                                    ) : (
+                                        "Add New Model"
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                )}
+
+                {/* Search Section - Lookup Function */}
+                {activeSegment === "search" && (
+                    <div className="lookup-container">
+                        <h1>SEARCH FOR YOUR SERIAL NUMBER 🔎</h1>
+                        <input
+                            type="text"
+                            value={searchSerial}
+                            onChange={(e) =>
+                                setSearchSerial(e.target.value.toUpperCase())
+                            }
+                            placeholder="Enter serial number"
+                        />
+                        <button onClick={handleSearch}>
+                            {loading.search ? (
+                                <>
+                                    <p>Searching...</p>
+                                </>
+                            ) : (
+                                "Search"
+                            )}
+                        </button>
+                        {searchResult ? (
+                            <div className="search-results">
+                                <h3>
+                                    Details for {searchResult.serial_number}
+                                </h3>
+                                <p>
+                                    <strong>Item:</strong> {searchResult.item}
+                                </p>
+                                <p className="search-customer">
+                                    <strong>Customer:</strong>{" "}
+                                    {searchResult.customer}
+                                </p>
+                                <p>
+                                    <strong>Invoice No:</strong>{" "}
+                                    {searchResult.invoice_no}
+                                </p>
+                                <p>
+                                    <strong>Invoice Date:</strong>{" "}
+                                    {searchResult.invoice_date}
+                                </p>
+                            </div>
+                        ) : (
+                            searchSerial && (
+                                <p className="search-error">
+                                    {loading
+                                        ? ""
+                                        : `No result found for ${searchSerial}`}
+                                </p>
+                            )
+                        )}
+                    </div>
+                )}
+
+                {/* Backups Section */}
+                {activeSegment === "backups" && (
+                    <div className="backup-container">
+                        <h1>Backup Your Inventory Data 💾</h1>
+                        <div className="backup-controls">
+                            <div className="tb-info-row">
+                                <p className="total-products">
+                                    Total Entries: {inventory.length}
+                                </p>
+                            </div>
+                            <div className="choose-customer">
+                                {["customer"].map((field) => (
+                                    <label key={field}>
                                         <p>CUSTOMER NAME</p>
                                         <input
                                             type="text"
                                             name={field}
                                             placeholder={`CUSTOMER NAME...`}
-                                            value={form[field]}
-                                            onChange={handleInputChange}
+                                            value={backupCustomer}
+                                            onChange={
+                                                handleCustomerBackupChange
+                                            }
                                             onBlur={() =>
                                                 setTimeout(() => {
                                                     setActiveField(null);
@@ -652,7 +1188,7 @@ export default function App() {
                                                             <li
                                                                 key={index}
                                                                 onClick={() =>
-                                                                    handleSelectItem(
+                                                                    handleSelectItemBackup(
                                                                         field,
                                                                         item
                                                                     )
@@ -665,339 +1201,104 @@ export default function App() {
                                             )}
                                     </label>
                                 ))}
-                                <label>
-                                    <p>INVOICE NO</p>
-                                    <input
-                                        type="text"
-                                        name="invoiceNo"
-                                        placeholder="INVOICE NO..."
-                                        value={form.invoiceNo}
-                                        onChange={handleInputChange}
-                                    />
-                                </label>
-                                <label>
-                                    <p>INVOICE DATE</p>
-                                    <input
-                                        type="date"
-                                        name="invoiceDate"
-                                        value={form.invoiceDate}
-                                        onChange={handleInputChange}
-                                    />
-                                </label>
+                            </div>
+                            <div className="backup-actions">
+                                <select id="backupFormat">
+                                    <option value="csv">CSV</option>
+                                    <option value="pdf">PDF</option>
+                                </select>
+                                <button onClick={handleBackup}>Backup</button>
                             </div>
                         </div>
-                        <div className="input-second-container">
-                            <h2>Serial Numbers 🔢</h2>
-                            <div className="input-second-box">
-                                {form.serialNumber.map((serial, index) => (
-                                    <div
-                                        className="serial-quantity-inputs"
-                                        key={index}
-                                    >
-                                        <label>
-                                            <p>Model</p>
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    height: "52px",
-                                                    gap: "8px",
-                                                }}
-                                            >
-                                                <input
-                                                    type="text"
-                                                    name={`serialNumber-${index}`}
-                                                    value={form.item[index]}
-                                                    readOnly
-                                                    placeholder={`Model`}
-                                                />
-                                            </div>
-                                        </label>
-                                        <label>
-                                            <p>Serial Number #{index + 1}</p>
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    height: "52px",
-                                                    gap: "8px",
-                                                }}
-                                            >
-                                                <input
-                                                    type="text"
-                                                    name={`serialNumber-${index}`}
-                                                    value={serial}
-                                                    // style={{textTransform: 'uppercase'}}
-                                                    onChange={(e) =>
-                                                        handleSerialNumberChange(
-                                                            e,
-                                                            index
-                                                        )
-                                                    }
-                                                    placeholder={`SERIAL NUMBER #${
-                                                        index + 1
-                                                    }...`}
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        processSerialNumber(
-                                                            index
-                                                        )
-                                                    }
-                                                    style={{
-                                                        backgroundColor:
-                                                            "#ffa600",
-                                                        border: "1px solid #ffa600",
-                                                        color: "#fff",
-                                                        padding: "0px 12px",
-                                                        height: "50px",
-                                                        translate: "0 -15px",
-                                                        borderRadius: "6px",
-                                                        cursor: "pointer",
-                                                    }}
-                                                >
-                                                    <Plus size={17}/>
-                                                </button>
-                                            </div>
-                                        </label>
-                                        <label>
-                                            <p>
-                                                Quantity for Serial Number #
-                                                {index + 1}
-                                            </p>
-                                            <input
-                                                type="number"
-                                                name={`quantity-${index}`}
-                                                value={
-                                                    form.quantity[index] || ""
-                                                }
-                                                onChange={(e) =>
-                                                    handleQuantityChange(
-                                                        e,
-                                                        index
-                                                    )
-                                                }
-                                                max={40}
-                                            />
-                                        </label>
-                                        {form.serialNumber.length > 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    handleDeleteSerialQ(index)
-                                                }
-                                                className="delete-serialQ-btn"
-                                                aria-label={`Delete serial number ${
-                                                    index + 1
-                                                }`}
-                                                style={{
-                                                    backgroundColor: "#dc3545", // Bootstrap danger red
-                                                    border: "1px solid #dc3545",
-                                                    color: "#fff",
-                                                    padding: "7px",
-                                                    borderRadius: "6px",
-                                                    cursor: "pointer",
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    justifyContent: "center",
-                                                }}
-                                                onMouseOver={(e) => {
-                                                    e.currentTarget.style.backgroundColor =
-                                                        "#c82333";
-                                                    e.currentTarget.style.borderColor =
-                                                        "#bd2130";
-                                                }}
-                                                onMouseOut={(e) => {
-                                                    e.currentTarget.style.backgroundColor =
-                                                        "#dc3545";
-                                                    e.currentTarget.style.borderColor =
-                                                        "#dc3545";
-                                                }}
-                                            >
-                                                <Trash size={19} />
-                                            </button>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                            <button
-                                type="button"
-                                onClick={handleAddSerialQ}
-                                className="add-serialQ-btn"
-                            >
-                                Add New Serial
-                            </button>
-                        </div>
-                        <div className="submit-btn">
-                            <button type="submit">
-                                {loading.inventory ? (
-                                    <>
-                                        <p>Adding...</p>
-                                    </>
-                                ) : (
-                                    "Add to inventory"
-                                )}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                {/* Add new model */}
-                <div className="add-information-container">
-                    <form onSubmit={handleModelSubmit}>
-                        <div className="input-container">
-                            <h1>Add New Product Model 📱</h1>
-                            <div className="input-container-box">
-                                <label>
-                                    <p>PRODUCT NAME</p>
-                                    <input
-                                        type="text"
-                                        name="productName"
-                                        placeholder="PRODUCT NAME..."
-                                        value={modelForm.productName}
-                                        onChange={(e) =>
-                                            setModelForm({
-                                                ...modelForm,
-                                                productName: e.target.value,
-                                            })
-                                        }
-                                    />
-                                </label>
-                                <label>
-                                    <p>BARCODE ID</p>
-                                    <input
-                                        type="text"
-                                        name="barcodeId"
-                                        placeholder="BARCODE ID..."
-                                        value={modelForm.barcodeId}
-                                        onChange={(e) =>
-                                            setModelForm({
-                                                ...modelForm,
-                                                barcodeId: e.target.value,
-                                            })
-                                        }
-                                    />
-                                </label>
-                            </div>
-                        </div>
-                        <div className="submit-btn model">
-                            <button type="submit">
-                                {modelLoading ? (
-                                    <>
-                                        <p>Adding...</p>
-                                    </>
-                                ) : (
-                                    "Add New Model"
-                                )}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                {/* Lookup Function */}
-                <div className="lookup-container">
-                    <h1>SEARCH FOR YOUR SERIAL NUMBER 🔎</h1>
-                    <input
-                        type="text"
-                        value={searchSerial}
-                        onChange={(e) => setSearchSerial(e.target.value.toUpperCase())}
-                        placeholder="Enter serial number"
-                    />
-                    <button onClick={handleSearch}>
-                        {loading.search ? (
-                            <>
-                                <p>Searching...</p>
-                            </>
-                        ) : (
-                            "Search"
-                        )}
-                    </button>
-                    {searchResult ? (
-                        <div className="search-results">
-                            <h3>Details for {searchResult.serial_number}</h3>
-                            <p>
-                                <strong>Item:</strong> {searchResult.item}
-                            </p>
-                            <p className="search-customer">
-                                <strong>Customer:</strong>{" "}
-                                {searchResult.customer}
-                            </p>
-                            <p>
-                                <strong>Invoice No:</strong>{" "}
-                                {searchResult.invoice_no}
-                            </p>
-                            <p>
-                                <strong>Invoice Date:</strong>{" "}
-                                {searchResult.invoice_date}
-                            </p>
-                        </div>
-                    ) : (
-                        searchSerial && (
-                            <p className="search-error">
-                                {loading
-                                    ? ""
-                                    : `No result found for ${searchSerial}`}
-                            </p>
-                        )
-                    )}
-                </div>
-
-                {/* Display inventory */}
-                <div className="table-container">
-                    <h4>All Products 📦</h4>
-                    <div className="tb-info-row">
-                        <p className="total-products">
-                            Total Entries: {inventory.length}
-                        </p>
-                        <select id="backupFormat">
-                            <option value="csv">CSV</option>
-                            <option value="pdf">PDF</option>
-                        </select>
-                        <button onClick={handleBackup}>Backup</button>
                     </div>
-                    <table border="1">
-                        <thead>
-                            <tr>
-                                <th>Item</th>
-                                <th>Serial Number</th>
-                                <th>Customer</th>
-                                <th>Invoice No</th>
-                                <th>Invoice Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {inventory
-                                .slice()
-                                .sort(
-                                    (a, b) =>
-                                        new Date(b.invoice_date) -
-                                        new Date(a.invoice_date)
-                                )
-                                .slice()
-                                .map((data) => (
-                                    <tr key={data.id}>
-                                        <td>{data.item}</td>
-                                        <td>{data.serial_number}</td>
-                                        <td>{data.customer}</td>
-                                        <td>{data.invoice_no}</td>
-                                        <td>{data.invoice_date}</td>
-                                        <td>
-                                            <button
-                                                className="del-btn"
-                                                onClick={() =>
-                                                    deleteEntry(data.id)
-                                                }
-                                            >
-                                                Delete
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                        </tbody>
-                    </table>
-                </div>
+                )}
+
+                {/* Table Section - Display inventory */}
+                {activeSegment === "table" && (
+                    <div className="table-container">
+                        <h4>All Products 📦</h4>
+                        <div className="tb-info-row">
+                            <p className="total-products">
+                                Total Entries: {inventory.length}
+                            </p>
+                        </div>
+                        <div className="filter-table">
+                            <p>Filter by rows: </p>
+                            <input type="number" placeholder="No of rows" min={1} max={inventory.length} onChange={(e) => setFilteredTableLength(e.target.value)}  />
+                        </div>
+                        <table border="1">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Serial Number</th>
+                                    <th>Customer</th>
+                                    <th>Invoice No</th>
+                                    <th>Invoice Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredTableLength > 0 ? (
+                                    inventory
+                                        .slice()
+                                        .sort(
+                                            (a, b) =>
+                                                new Date(b.invoice_date) -
+                                                new Date(a.invoice_date)
+                                        )
+                                        .slice(0 , filteredTableLength)
+                                        .map((data) => (
+                                            <tr key={data.id}>
+                                                <td>{data.item}</td>
+                                                <td>{data.serial_number}</td>
+                                                <td>{data.customer}</td>
+                                                <td>{data.invoice_no}</td>
+                                                <td>{data.invoice_date}</td>
+                                                <td>
+                                                    <button
+                                                        className="del-btn"
+                                                        onClick={() =>
+                                                            deleteEntry(data.id)
+                                                        }
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                ) : (
+                                    inventory
+                                        .slice()
+                                        .sort(
+                                            (a, b) =>
+                                                new Date(b.invoice_date) -
+                                                new Date(a.invoice_date)
+                                        )
+                                        .slice()
+                                        .map((data) => (
+                                            <tr key={data.id}>
+                                                <td>{data.item}</td>
+                                                <td>{data.serial_number}</td>
+                                                <td>{data.customer}</td>
+                                                <td>{data.invoice_no}</td>
+                                                <td>{data.invoice_date}</td>
+                                                <td>
+                                                    <button
+                                                        className="del-btn"
+                                                        onClick={() =>
+                                                            deleteEntry(data.id)
+                                                        }
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
         </>
     );
