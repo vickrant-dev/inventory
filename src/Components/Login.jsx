@@ -9,7 +9,7 @@ export default function Login() {
     const navigate = useNavigate();
 
     const C_username = "steel";
-    const C_password = "selva@1972";
+    const C_password = "22selva@1972";
 
     localStorage.setItem('username', C_username);
 
