@@ -412,6 +412,11 @@ export default function App() {
         if (qtyPart) {
             newQuantities[index] = Number(qtyPart);
         }
+        else {
+            newQuantities[index] = Number(1);
+            console.log("newQuantities: ", newQuantities);
+        }
+
 
         // Update form with processed values
         setForm((prevForm) => ({
