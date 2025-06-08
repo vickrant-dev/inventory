@@ -1,11 +1,18 @@
-"use client";
-
+import '../index.css';
 import { useEffect, useState } from "react";
-import "../App.css";
 import { useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import { Plus, Trash } from "lucide-react";
+import {
+    Plus,
+    Trash,
+    Search,
+    Package,
+    Users,
+    Download,
+    Table,
+    LogOut,
+} from "lucide-react";
 import { supabase } from "../utils/supabase";
 
 export default function App() {
@@ -29,11 +36,8 @@ export default function App() {
         search: false,
     });
 
-    // New state for active segment
     const [activeSegment, setActiveSegment] = useState("customer");
-
     const navigate = useNavigate();
-
     const user_username = localStorage.getItem("username");
 
     const [modelForm, setModelForm] = useState({
@@ -41,9 +45,7 @@ export default function App() {
         barcodeId: "",
     });
     const [modelLoading, setModelLoading] = useState(false);
-
     const [backupCustomer, setBackupCustomer] = useState("");
-
     const [filteredTableLength, setFilteredTableLength] = useState(null);
 
     useEffect(() => {
@@ -69,7 +71,6 @@ export default function App() {
         navigate("/login");
     };
 
-    // Fetch inventory from Supabase on load
     useEffect(() => {
         const fetchInventory = async () => {
             const { data, error } = await supabase
@@ -113,7 +114,7 @@ export default function App() {
                 });
 
             setDropDownData({ ...dropDownData, [name]: filteredResults });
-        } // ⭐
+        }
     };
 
     const handleCustomerBackupChange = (e) => {
@@ -144,9 +145,8 @@ export default function App() {
                 });
 
             setDropDownData({ ...dropDownData, [name]: filteredResults });
-        } // ⭐
-
-    }
+        }
+    };
 
     const handleSelectItem = (name, value) => {
         setForm((prevForm) => ({ ...prevForm, [name]: value }));
@@ -156,7 +156,7 @@ export default function App() {
     const handleSelectItemBackup = (name, value) => {
         setBackupCustomer(value);
         setActiveField(null);
-    }
+    };
 
     const handleConfirmSubmit = (e) => {
         e.preventDefault();
@@ -184,7 +184,6 @@ export default function App() {
                 handleSubmit();
                 return;
             } else {
-                // console.log("Submission cancelled.");
                 return;
             }
         } else {
@@ -194,12 +193,7 @@ export default function App() {
     };
 
     const handleSubmit = async () => {
-        setLoading((prev) => ({
-            ...prev,
-            inventory: true,
-        }));
-
-        // Check if each of those serials exist already after iterating
+        setLoading((prev) => ({ ...prev, inventory: true }));
 
         try {
             let newEntries = [];
@@ -208,31 +202,25 @@ export default function App() {
                 const parts = serial.split("-");
                 if (parts.length !== 2 || isNaN(parts[1])) {
                     alert(`Invalid serial number format: ${serial}`);
-                    setLoading((prev) => ({
-                        ...prev,
-                        inventory: false,
-                    }));
+                    setLoading((prev) => ({ ...prev, inventory: false }));
                     return;
                 }
 
                 const prefix = parts[0];
                 const baseNumber = Number.parseInt(parts[1], 10);
-
                 const quantity = form.quantity[index];
-                const itemName = form.item[index]; // Store the item name for this specific index
+                const itemName = form.item[index];
 
                 for (let i = 0; i < quantity; i++) {
                     const uniqueSerial = `${prefix}-${baseNumber + i}`;
                     newEntries.push({
-                        item: itemName, // Use the item name from the correct index
+                        item: itemName,
                         serial_number: uniqueSerial,
                         customer: form.customer,
                         invoice_no: form.invoiceNo,
                         invoice_date: form.invoiceDate,
                     });
                 }
-
-                // console.log('newEntries:', newEntries);
             });
 
             const { data: existingData, error: fetchError } = await supabase
@@ -248,19 +236,13 @@ export default function App() {
                     "Error fetching existing serial numbers:",
                     fetchError.message
                 );
-                setLoading((prev) => ({
-                    ...prev,
-                    inventory: false,
-                }));
+                setLoading((prev) => ({ ...prev, inventory: false }));
                 return;
             }
 
-            // Convert existing serial numbers into a Set for quick lookup
             const existingSerials = new Set(
                 existingData.map((item) => item.serial_number)
             );
-
-            // Filter out already existing serial numbers
             newEntries = newEntries.filter(
                 (entry) => !existingSerials.has(entry.serial_number)
             );
@@ -269,14 +251,10 @@ export default function App() {
                 alert(
                     "All serial numbers already exist. No new entries were added."
                 );
-                setLoading((prev) => ({
-                    ...prev,
-                    inventory: false,
-                }));
+                setLoading((prev) => ({ ...prev, inventory: false }));
                 return;
             }
 
-            // Insert only unique serial numbers into Supabase
             const { data, error } = await supabase
                 .from("inventorynew")
                 .insert(newEntries)
@@ -284,10 +262,7 @@ export default function App() {
 
             if (error) {
                 console.error("Error inserting data:", error.message);
-                setLoading((prev) => ({
-                    ...prev,
-                    inventory: false,
-                }));
+                setLoading((prev) => ({ ...prev, inventory: false }));
                 alert("Error adding entry. Ensure serial numbers are unique.");
             } else {
                 setInventory([...inventory, ...data]);
@@ -299,10 +274,7 @@ export default function App() {
                     invoiceDate: "",
                     quantity: [""],
                 });
-                setLoading((prev) => ({
-                    ...prev,
-                    inventory: false,
-                }));
+                setLoading((prev) => ({ ...prev, inventory: false }));
                 const message = form.serialNumber
                     .map(
                         (serial, i) =>
@@ -313,12 +285,9 @@ export default function App() {
             }
         } catch (error) {
             console.error("Submission Error:", error.message);
-            setLoading((prev) => ({
-                ...prev,
-                inventory: false,
-            }));
+            setLoading((prev) => ({ ...prev, inventory: false }));
         }
-    }; // ⭐
+    };
 
     const handleModelSubmit = async (e) => {
         e.preventDefault();
@@ -331,7 +300,6 @@ export default function App() {
         setModelLoading(true);
 
         try {
-            // Check if barcode already exists
             const { data: existingBarcode, error: checkError } = await supabase
                 .from("products")
                 .select("barcode_id")
@@ -353,7 +321,6 @@ export default function App() {
                 return;
             }
 
-            // Insert new model
             const { data, error } = await supabase
                 .from("products")
                 .insert([
@@ -381,13 +348,6 @@ export default function App() {
         }
     };
 
-    useEffect(() => {
-        // console.log(form);
-        // console.log(inventory);
-    }, [form, inventory]);
-
-    const debounceTimers = {};
-
     const handleSerialNumberChange = (e, index) => {
         const input = e.target.value.trim().toUpperCase();
         const newSerialNumbers = [...form.serialNumber];
@@ -401,31 +361,26 @@ export default function App() {
 
     const processSerialNumber = async (index) => {
         const serialInput = form.serialNumber[index].trim();
-        const [serialPart, qtyPart] = serialInput.split("_"); // Split the input
+        const [serialPart, qtyPart] = serialInput.split("_");
 
         const newSerialNumbers = [...form.serialNumber];
         const newQuantities = [...form.quantity];
         const newItem = [...form.item];
 
-        newSerialNumbers[index] = serialPart; // Save only the serial part
+        newSerialNumbers[index] = serialPart;
 
         if (qtyPart) {
             newQuantities[index] = Number(qtyPart);
-        }
-        else {
+        } else {
             newQuantities[index] = Number(1);
-            console.log("newQuantities: ", newQuantities);
         }
 
-
-        // Update form with processed values
         setForm((prevForm) => ({
             ...prevForm,
             serialNumber: newSerialNumbers,
             quantity: newQuantities,
         }));
 
-        // Process model code
         const modelCode = serialPart.split("-")[0];
 
         if (modelCode) {
@@ -442,12 +397,7 @@ export default function App() {
                 );
             } else if (data) {
                 newItem[index] = data.product_name;
-                setForm((prevForm) => ({
-                    ...prevForm,
-                    item: newItem,
-                }));
-                // console.log(newItem[index]);
-                // console.log(form);
+                setForm((prevForm) => ({ ...prevForm, item: newItem }));
             }
         }
     };
@@ -518,10 +468,7 @@ export default function App() {
             return;
         }
 
-        setLoading((prev) => ({
-            ...prev,
-            search: true,
-        }));
+        setLoading((prev) => ({ ...prev, search: true }));
 
         const { data, error } = await supabase
             .from("inventorynew")
@@ -530,16 +477,10 @@ export default function App() {
 
         if (error) {
             console.error("Error searching for serial number:", error.message);
-            setLoading((prev) => ({
-                ...prev,
-                search: false,
-            }));
+            setLoading((prev) => ({ ...prev, search: false }));
         } else {
             setSearchResult(data.length > 0 ? data[0] : null);
-            setLoading((prev) => ({
-                ...prev,
-                search: false,
-            }));
+            setLoading((prev) => ({ ...prev, search: false }));
         }
     };
 
@@ -570,63 +511,71 @@ export default function App() {
             return;
         }
 
-        numRows = Math.min(numRows, inventory.length); // Ensure it doesn't exceed inventory length
+        numRows = Math.min(numRows, inventory.length);
 
         if (backupCustomer === "") {
             const sortedInventory = inventory.slice().sort((a, b) => {
                 return new Date(b.invoice_date) - new Date(a.invoice_date);
             });
-    
+
             const selectedEntries = sortedInventory.slice(0, numRows);
-    
+
             let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "Item,Serial Number,Customer,Invoice No,Invoice Date\n"; // CSV headers
-    
+            csvContent +=
+                "Item,Serial Number,Customer,Invoice No,Invoice Date\n";
+
             selectedEntries.forEach((row) => {
                 csvContent += `${row.item},${row.serial_number},${row.customer},${row.invoice_no},${row.invoice_date}\n`;
             });
-    
+
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `inventory_backup_${numRows}_rows.csv`);
+            link.setAttribute(
+                "download",
+                `inventory_backup_${numRows}_rows.csv`
+            );
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        }
-        else {
+        } else {
             const filteredInventory = inventory.filter(
                 (entry) =>
-                    entry.customer.toLowerCase() === backupCustomer.toLowerCase()
+                    entry.customer.toLowerCase() ===
+                    backupCustomer.toLowerCase()
             );
-    
+
             if (filteredInventory.length === 0) {
                 alert(`No records found for customer "${backupCustomer}".`);
                 return;
             }
-    
+
             const sortedInventory = filteredInventory.slice().sort((a, b) => {
                 return new Date(b.invoice_date) - new Date(a.invoice_date);
             });
-    
+
             const selectedEntries = sortedInventory.slice(0, numRows);
-    
+
             let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "Item,Serial Number,Customer,Invoice No,Invoice Date\n"; // CSV headers
-    
+            csvContent +=
+                "Item,Serial Number,Customer,Invoice No,Invoice Date\n";
+
             selectedEntries.forEach((row) => {
                 csvContent += `${row.item},${row.serial_number},${row.customer},${row.invoice_no},${row.invoice_date}\n`;
             });
-    
+
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `inventory_backup_${backupCustomer}_${numRows}_rows.csv`);
+            link.setAttribute(
+                "download",
+                `inventory_backup_${backupCustomer}_${numRows}_rows.csv`
+            );
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
-    }; // ⭐
+    };
 
     const backupPDF = () => {
         let numRows = Number.parseInt(
@@ -647,38 +596,37 @@ export default function App() {
             const sortedInventory = inventory.slice().sort((a, b) => {
                 return new Date(b.invoice_date) - new Date(a.invoice_date);
             });
-    
+
             const selectedEntries = sortedInventory.slice(0, numRows);
-    
+
             const doc = new jsPDF();
             let y = 20;
             const marginTop = 10;
             const pageHeight = doc.internal.pageSize.height;
-    
+
             const addHeaders = () => {
                 doc.setFontSize(12);
                 doc.text("Inventory Backup", 14, marginTop);
                 doc.line(10, marginTop + 2, 200, marginTop + 2);
-    
+
                 doc.text("Item", 10, y);
                 doc.text("Serial Number", 50, y);
                 doc.text("Customer", 100, y);
                 doc.text("Invoice No", 150, y);
                 doc.text("Invoice Date", 180, y);
-    
+
                 y += 10;
             };
-    
+
             addHeaders();
-    
+
             selectedEntries.forEach((row, index) => {
                 if (y + 10 > pageHeight - 10) {
-                    // Check if new row fits on the page
                     doc.addPage();
-                    y = marginTop + 10; // Reset y for new page
-                    addHeaders(); // Re-add headers for new page
+                    y = marginTop + 10;
+                    addHeaders();
                 }
-    
+
                 doc.text(row.item, 10, y);
                 doc.text(row.serial_number, 50, y);
                 doc.text(row.customer, 100, y);
@@ -686,55 +634,54 @@ export default function App() {
                 doc.text(row.invoice_date, 180, y);
                 y += 10;
             });
-    
-            doc.save(`inventory_backup_${backupCustomer}_${numRows}_rows.pdf`);
-        }
 
-        else {
+            doc.save(`inventory_backup_${backupCustomer}_${numRows}_rows.pdf`);
+        } else {
             const filteredInventory = inventory.filter(
-                (entry) => entry.customer.toLowerCase() === backupCustomer.toLowerCase()
+                (entry) =>
+                    entry.customer.toLowerCase() ===
+                    backupCustomer.toLowerCase()
             );
-    
+
             if (filteredInventory.length === 0) {
                 alert(`No records found for customer "${backupCustomer}".`);
                 return;
             }
-    
+
             const sortedInventory = filteredInventory.slice().sort((a, b) => {
                 return new Date(b.invoice_date) - new Date(a.invoice_date);
             });
-    
+
             const selectedEntries = sortedInventory.slice(0, numRows);
-    
+
             const doc = new jsPDF();
             let y = 20;
             const marginTop = 10;
             const pageHeight = doc.internal.pageSize.height;
-    
+
             const addHeaders = () => {
                 doc.setFontSize(12);
                 doc.text("Inventory Backup", 14, marginTop);
                 doc.line(10, marginTop + 2, 200, marginTop + 2);
-    
+
                 doc.text("Item", 10, y);
                 doc.text("Serial Number", 50, y);
                 doc.text("Customer", 100, y);
                 doc.text("Invoice No", 150, y);
                 doc.text("Invoice Date", 180, y);
-    
+
                 y += 10;
             };
-    
+
             addHeaders();
-    
+
             selectedEntries.forEach((row, index) => {
                 if (y + 10 > pageHeight - 10) {
-                    // Check if new row fits on the page
                     doc.addPage();
-                    y = marginTop + 10; // Reset y for new page
-                    addHeaders(); // Re-add headers for new page
+                    y = marginTop + 10;
+                    addHeaders();
                 }
-    
+
                 doc.text(row.item, 10, y);
                 doc.text(row.serial_number, 50, y);
                 doc.text(row.customer, 100, y);
@@ -742,99 +689,508 @@ export default function App() {
                 doc.text(row.invoice_date, 180, y);
                 y += 10;
             });
-    
+
             doc.save(`inventory_backup_${backupCustomer}_${numRows}_rows.pdf`);
         }
-
     };
-    // ⭐
+
+    const segments = [
+        { id: "customer", label: "Customer", icon: Users },
+        { id: "products", label: "Products", icon: Package },
+        { id: "search", label: "Search", icon: Search },
+        { id: "backups", label: "Backups", icon: Download },
+        { id: "table", label: "Table", icon: Table },
+    ];
 
     return (
-        <>
-            <div className="main-container">
-                {/* User Login/Logout */}
-                <div className="user-container">
-                    <div className="left">
-                        <h1>
-                            Welcome Back <span>{user_username}!</span> 👋🏼
+        <div className="min-h-screen bg-base-300">
+            <div className="max-w-7xl mx-auto px-6 py-8">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-12">
+                    <div className="animate-fade-in">
+                        <h1 className="text-4xl font-semibold text-base-content mb-2">
+                            Welcome back,{" "}
+                            <span className="text-primary">
+                                {user_username}
+                            </span>
                         </h1>
+                        <p className="text-base-content/60 text-lg">
+                            Manage your inventory with ease
+                        </p>
                     </div>
-                    <div className="right">
-                        <button onClick={handleLogout}>Logout</button>
-                    </div>
-                </div>
-
-                {/* Segmented Control */}
-                <div className="segment-control">
                     <button
-                        className={`segment-btn ${
-                            activeSegment === "customer" ? "active" : ""
-                        }`}
-                        onClick={() => setActiveSegment("customer")}
+                        onClick={handleLogout}
+                        className="flex items-center gap-2 px-6 py-3 bg-red-900 backdrop-blur-xl border border-base-300/30 rounded-2xl text-red-200 hover:text-red-200 hover:bg-red-950 transition-all duration-200"
                     >
-                        Customer
-                    </button>
-                    <button
-                        className={`segment-btn ${
-                            activeSegment === "products" ? "active" : ""
-                        }`}
-                        onClick={() => setActiveSegment("products")}
-                    >
-                        Products
-                    </button>
-                    <button
-                        className={`segment-btn ${
-                            activeSegment === "search" ? "active" : ""
-                        }`}
-                        onClick={() => setActiveSegment("search")}
-                    >
-                        Search
-                    </button>
-                    <button
-                        className={`segment-btn ${
-                            activeSegment === "backups" ? "active" : ""
-                        }`}
-                        onClick={() => setActiveSegment("backups")}
-                    >
-                        Backups
-                    </button>
-                    <button
-                        className={`segment-btn ${
-                            activeSegment === "table" ? "active" : ""
-                        }`}
-                        onClick={() => setActiveSegment("table")}
-                    >
-                        Table
+                        <LogOut size={18} />
+                        <span className="font-medium">Sign Out</span>
                     </button>
                 </div>
 
-                {/* Customer Section - Add new inventory */}
-                {activeSegment === "customer" && (
-                    <div className="add-information-container">
-                        <form onSubmit={handleConfirmSubmit}>
-                            <div className="input-container">
-                                <h1>Enter Product Information 📄</h1>
-                                <div className="input-container-box">
+                {/* Navigation */}
+                <div className="mb-12 animate-slide-up">
+                    <div className="flex flex-wrap gap-2 p-2 bg-base-100/30 backdrop-blur-xl rounded-3xl border border-base-300/20">
+                        {segments.map((segment) => {
+                            const Icon = segment.icon;
+                            return (
+                                <button
+                                    key={segment.id}
+                                    onClick={() => setActiveSegment(segment.id)}
+                                    className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-medium transition-all duration-200 ${
+                                        activeSegment === segment.id
+                                            ? "bg-primary text-white shadow-lg transform scale-[1.02]"
+                                            : "text-base-content/70 hover:text-base-content hover:bg-base-100"
+                                    }`}
+                                >
+                                    <Icon size={18} />
+                                    <span>{segment.label}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Content Sections */}
+                <div className="animate-scale-in">
+                    {/* Customer Section */}
+                    {activeSegment === "customer" && (
+                        <div className="space-y-8">
+                            <form
+                                onSubmit={handleConfirmSubmit}
+                                className="space-y-8"
+                            >
+                                {/* Customer Information */}
+                                <div className="bg-base-100/50 backdrop-blur-sm rounded-3xl p-8 border border-base-300/20 shadow-xl relative z-9">
+                                    <h2 className="text-2xl font-semibold text-base-content mb-8">
+                                        Product Information
+                                    </h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        {["customer"].map((field) => (
+                                            <div
+                                                key={field}
+                                                className="relative z-10"
+                                            >
+                                                <label className="block text-sm font-medium text-base-content/80 mb-3 ml-2">
+                                                    Customer Name
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    name={field}
+                                                    placeholder="Enter customer name"
+                                                    className="w-full px-4 py-4 bg-base-200/50 border-2 border-neutral rounded-2xl text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
+                                                    value={form[field]}
+                                                    onChange={handleInputChange}
+                                                    onBlur={() =>
+                                                        setTimeout(
+                                                            () =>
+                                                                setActiveField(
+                                                                    null
+                                                                ),
+                                                            100
+                                                        )
+                                                    }
+                                                />
+                                                {activeField === field &&
+                                                    dropDownData[field]
+                                                        ?.length > 0 && (
+                                                        <div className="absolute top-full left-0 right-0 mt-2 bg-base-300 backdrop-blur-sm border border-base-300/30 rounded-2xl shadow-2xl overflow-hidden">
+                                                            {dropDownData[field]
+                                                                .slice(0, 5)
+                                                                .map(
+                                                                    (
+                                                                        item,
+                                                                        index
+                                                                    ) => (
+                                                                        <button
+                                                                            key={
+                                                                                index
+                                                                            }
+                                                                            type="button"
+                                                                            onClick={() =>
+                                                                                handleSelectItem(
+                                                                                    field,
+                                                                                    item
+                                                                                )
+                                                                            }
+                                                                            className="w-full px-4 py-3 text-left hover:bg-base-100 transition-colors duration-150"
+                                                                        >
+                                                                            {
+                                                                                item
+                                                                            }
+                                                                        </button>
+                                                                    )
+                                                                )}
+                                                        </div>
+                                                    )}
+                                            </div>
+                                        ))}
+                                        <div>
+                                            <label className="block text-sm font-medium text-base-content/80 mb-3 ml-2">
+                                                Invoice Number
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="invoiceNo"
+                                                placeholder="Enter invoice number"
+                                                className="w-full px-4 py-4 bg-base-200/50 border-2 border-neutral rounded-2xl text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
+                                                value={form.invoiceNo}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-base-content/80 mb-3 ml-2">
+                                                Invoice Date
+                                            </label>
+                                            <input
+                                                type="date"
+                                                name="invoiceDate"
+                                                className="w-full px-4 py-4 bg-base-200/50 border-2 border-neutral rounded-2xl text-base-content focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
+                                                value={form.invoiceDate}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Serial Numbers */}
+                                <div className="bg-base-100/50 backdrop-blur-xl rounded-3xl p-8 border border-base-300/20 shadow-xl relative z-0">
+                                    <h2 className="text-2xl font-semibold text-base-content mb-8">
+                                        Serial Numbers
+                                    </h2>
+                                    <div className="space-y-6">
+                                        {form.serialNumber.map(
+                                            (serial, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end"
+                                                >
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-base-content/80 mb-3">
+                                                            Serial Number #
+                                                            {index + 1}
+                                                        </label>
+                                                        <div className="flex gap-2">
+                                                            <input
+                                                                type="text"
+                                                                value={serial}
+                                                                onChange={(e) =>
+                                                                    handleSerialNumberChange(
+                                                                        e,
+                                                                        index
+                                                                    )
+                                                                }
+                                                                placeholder={`Serial number ${
+                                                                    index + 1
+                                                                }`}
+                                                                className="flex-1 px-4 py-4 bg-accent/10 border border-accent/30 rounded-2xl text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50 transition-all duration-200"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    processSerialNumber(
+                                                                        index
+                                                                    )
+                                                                }
+                                                                className="px-4 py-4 bg-accent hover:bg-accent/90 text-white rounded-2xl transition-all duration-200 transform hover:scale-105"
+                                                            >
+                                                                <Plus
+                                                                    size={18}
+                                                                />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <div className='ml-0 lg:ml-3'>
+                                                        <label className="block text-sm font-medium text-base-content/80 mb-3">
+                                                            Model
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={
+                                                                form.item[index]
+                                                            }
+                                                            readOnly
+                                                            placeholder="Model will appear here"
+                                                            className="w-full px-4 py-4 bg-base-200/50 border-2 border-neutral rounded-2xl text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-base-content/80 mb-3">
+                                                            Quantity
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            value={
+                                                                form.quantity[
+                                                                    index
+                                                                ] || ""
+                                                            }
+                                                            onChange={(e) =>
+                                                                handleQuantityChange(
+                                                                    e,
+                                                                    index
+                                                                )
+                                                            }
+                                                            max={40}
+                                                            placeholder="Qty"
+                                                            className="w-full px-4 py-4 bg-base-200/50 border-2 border-neutral rounded-2xl text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
+                                                        />
+                                                    </div>
+                                                    {form.serialNumber.length >
+                                                        1 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                handleDeleteSerialQ(
+                                                                    index
+                                                                )
+                                                            }
+                                                            className="px-5 py-5 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30 rounded-2xl transition-all duration-200 w-fit"
+                                                        >
+                                                            <Trash size={18} />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            )
+                                        )}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleAddSerialQ}
+                                        className="mt-8 px-6 py-3 bg-green-500/10 hover:bg-green-500/20 text-green-500 border border-green-500/30 rounded-2xl font-medium transition-all duration-200"
+                                    >
+                                        Add Serial Number
+                                    </button>
+                                </div>
+
+                                {/* Submit Button */}
+                                <div className="flex justify-center">
+                                    <button
+                                        type="submit"
+                                        disabled={loading.inventory}
+                                        className="px-12 py-4 bg-red-500 hover:bg-red-500/90 disabled:bg-red-500/50 text-white font-semibold rounded-2xl transition-all duration-200 transform hover:scale-105 disabled:scale-100 shadow-lg"
+                                    >
+                                        {loading.inventory ? (
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                Adding to Inventory
+                                            </div>
+                                        ) : (
+                                            "Add to Inventory"
+                                        )}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    )}
+
+                    {/* Products Section */}
+                    {activeSegment === "products" && (
+                        <div className="space-y-8">
+                            <form
+                                onSubmit={handleModelSubmit}
+                                className="space-y-8"
+                            >
+                                <div className="bg-base-100/50 backdrop-blur-xl rounded-3xl p-8 border border-base-300/20 shadow-xl">
+                                    <h2 className="text-2xl font-semibold text-base-content mb-8">
+                                        Add New Product Model
+                                    </h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-sm font-medium text-base-content/80 mb-3">
+                                                Product Name
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="productName"
+                                                placeholder="Enter product name"
+                                                className="w-full px-4 py-4 bg-base-200/50 border-2 border-neutral rounded-2xl text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
+                                                value={modelForm.productName}
+                                                onChange={(e) =>
+                                                    setModelForm({
+                                                        ...modelForm,
+                                                        productName:
+                                                            e.target.value,
+                                                    })
+                                                }
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-base-content/80 mb-3">
+                                                Barcode ID
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="barcodeId"
+                                                placeholder="Enter barcode ID"
+                                                className="w-full px-4 py-4 bg-base-200/50 border-2 border-neutral rounded-2xl text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
+                                                value={modelForm.barcodeId}
+                                                onChange={(e) =>
+                                                    setModelForm({
+                                                        ...modelForm,
+                                                        barcodeId:
+                                                            e.target.value,
+                                                    })
+                                                }
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-center">
+                                    <button
+                                        type="submit"
+                                        disabled={modelLoading}
+                                        className="px-12 py-4 bg-secondary hover:bg-secondary/90 disabled:bg-secondary/50 text-white font-semibold rounded-2xl transition-all duration-200 transform hover:scale-105 disabled:scale-100 shadow-lg"
+                                    >
+                                        {modelLoading ? (
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                Adding Model...
+                                            </div>
+                                        ) : (
+                                            "Add New Model"
+                                        )}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    )}
+
+                    {/* Search Section */}
+                    {activeSegment === "search" && (
+                        <div className="bg-base-100/50 backdrop-blur-xl rounded-3xl p-8 border border-base-300/20 shadow-xl">
+                            <h2 className="text-2xl font-semibold text-base-content mb-8">
+                                Search Serial Number
+                            </h2>
+                            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                                <input
+                                    type="text"
+                                    value={searchSerial}
+                                    onChange={(e) =>
+                                        setSearchSerial(
+                                            e.target.value.toUpperCase()
+                                        )
+                                    }
+                                    placeholder="Enter serial number to search"
+                                    className="flex-1 px-4 py-4 bg-base-200/50 border-2 border-accent/25 rounded-2xl text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50 transition-all duration-200"
+                                />
+                                <button
+                                    onClick={handleSearch}
+                                    disabled={loading.search}
+                                    className="px-8 py-4 bg-accent hover:bg-accent/90 disabled:bg-accent/50 text-white font-semibold rounded-2xl transition-all duration-200 transform hover:scale-105 disabled:scale-100"
+                                >
+                                    {loading.search ? (
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                            Searching...
+                                        </div>
+                                    ) : (
+                                        "Search"
+                                    )}
+                                </button>
+                            </div>
+
+                            {searchResult ? (
+                                <div className="bg-accent/10 border border-accent/30 rounded-2xl p-6">
+                                    <h3 className="text-lg font-semibold text-base-content mb-4">
+                                        Details for {searchResult.serial_number}
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <span className="text-base-content/60">
+                                                Item:
+                                            </span>
+                                            <span className="ml-2 font-medium">
+                                                {searchResult.item}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className="text-base-content/60">
+                                                Customer:
+                                            </span>
+                                            <span className="ml-2 font-medium text-primary">
+                                                {searchResult.customer}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className="text-base-content/60">
+                                                Invoice No:
+                                            </span>
+                                            <span className="ml-2 font-medium">
+                                                {searchResult.invoice_no}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className="text-base-content/60">
+                                                Invoice Date:
+                                            </span>
+                                            <span className="ml-2 font-medium">
+                                                {searchResult.invoice_date}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                searchSerial &&
+                                !loading.search && (
+                                    <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 text-center">
+                                        <p className="text-red-500">
+                                            No result found for "{searchSerial}"
+                                        </p>
+                                    </div>
+                                )
+                            )}
+                        </div>
+                    )}
+
+                    {/* Backups Section */}
+                    {activeSegment === "backups" && (
+                        <div className="bg-base-100/50 backdrop-blur-xl rounded-3xl p-8 border border-base-300/20 shadow-xl">
+                            <h2 className="text-2xl font-semibold text-base-content mb-8">
+                                Backup Data
+                            </h2>
+
+                            <div className="space-y-8">
+                                <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-6">
+                                    <div className="text-center">
+                                        <div className="text-3xl font-bold text-green-500">
+                                            {inventory.length}
+                                        </div>
+                                        <div className="text-base-content/60">
+                                            Total Entries
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="relative">
                                     {["customer"].map((field) => (
-                                        <label key={field}>
-                                            <p>CUSTOMER NAME</p>
+                                        <div key={field}>
+                                            <label className="block text-sm font-medium text-base-content/80 mb-3">
+                                                Filter by Customer (Optional)
+                                            </label>
                                             <input
                                                 type="text"
                                                 name={field}
-                                                placeholder={`CUSTOMER NAME...`}
-                                                value={form[field]}
-                                                onChange={handleInputChange}
+                                                placeholder="Enter customer name to filter"
+                                                className="w-full max-w-md px-4 py-4 bg-base-200/50 border-2 border-neutral rounded-2xl text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
+                                                value={backupCustomer}
+                                                onChange={
+                                                    handleCustomerBackupChange
+                                                }
                                                 onBlur={() =>
-                                                    setTimeout(() => {
-                                                        setActiveField(null);
-                                                    }, 100)
+                                                    setTimeout(
+                                                        () =>
+                                                            setActiveField(
+                                                                null
+                                                            ),
+                                                        100
+                                                    )
                                                 }
                                             />
-
                                             {activeField === field &&
                                                 dropDownData[field]?.length >
                                                     0 && (
-                                                    <ul className="dropdown">
+                                                    <div className="absolute top-full left-0 right-0 max-w-md z-50 mt-2 bg-base-300 backdrop-blur-xl border border-base-300/30 rounded-2xl shadow-2xl overflow-hidden">
                                                         {dropDownData[field]
                                                             .slice(0, 5)
                                                             .map(
@@ -842,469 +1198,174 @@ export default function App() {
                                                                     item,
                                                                     index
                                                                 ) => (
-                                                                    <li
+                                                                    <button
                                                                         key={
                                                                             index
                                                                         }
+                                                                        type="button"
                                                                         onClick={() =>
-                                                                            handleSelectItem(
+                                                                            handleSelectItemBackup(
                                                                                 field,
                                                                                 item
                                                                             )
                                                                         }
+                                                                        className="w-full px-4 py-3 text-left hover:bg-base-100 transition-colors duration-150"
                                                                     >
                                                                         {item}
-                                                                    </li>
+                                                                    </button>
                                                                 )
                                                             )}
-                                                    </ul>
+                                                    </div>
                                                 )}
-                                        </label>
-                                    ))}
-                                    <label>
-                                        <p>INVOICE NO</p>
-                                        <input
-                                            type="text"
-                                            name="invoiceNo"
-                                            placeholder="INVOICE NO..."
-                                            value={form.invoiceNo}
-                                            onChange={handleInputChange}
-                                        />
-                                    </label>
-                                    <label>
-                                        <p>INVOICE DATE</p>
-                                        <input
-                                            type="date"
-                                            name="invoiceDate"
-                                            value={form.invoiceDate}
-                                            onChange={handleInputChange}
-                                        />
-                                    </label>
-                                </div>
-                            </div>
-                            <div className="input-second-container">
-                                <h2>Serial Numbers 🔢</h2>
-                                <div className="input-second-box">
-                                    {form.serialNumber.map((serial, index) => (
-                                        <div
-                                            className="serial-quantity-inputs"
-                                            key={index}
-                                        >
-                                            <label>
-                                                <p>Model</p>
-                                                <div
-                                                    style={{
-                                                        display: "flex",
-                                                        alignItems: "center",
-                                                        height: "52px",
-                                                        gap: "8px",
-                                                    }}
-                                                >
-                                                    <input
-                                                        type="text"
-                                                        name={`serialNumber-${index}`}
-                                                        value={form.item[index]}
-                                                        readOnly
-                                                        placeholder={`Model`}
-                                                    />
-                                                </div>
-                                            </label>
-                                            <label>
-                                                <p>
-                                                    Serial Number #{index + 1}
-                                                </p>
-                                                <div
-                                                    style={{
-                                                        display: "flex",
-                                                        alignItems: "center",
-                                                        height: "52px",
-                                                        gap: "8px",
-                                                    }}
-                                                >
-                                                    <input
-                                                        type="text"
-                                                        name={`serialNumber-${index}`}
-                                                        value={serial}
-                                                        onChange={(e) =>
-                                                            handleSerialNumberChange(
-                                                                e,
-                                                                index
-                                                            )
-                                                        }
-                                                        placeholder={`SERIAL NUMBER #${
-                                                            index + 1
-                                                        }...`}
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            processSerialNumber(
-                                                                index
-                                                            )
-                                                        }
-                                                        style={{
-                                                            backgroundColor:
-                                                                "#ffa600",
-                                                            border: "1px solid #ffa600",
-                                                            color: "#fff",
-                                                            padding: "0px 12px",
-                                                            height: "50px",
-                                                            translate:
-                                                                "0 -15px",
-                                                            borderRadius: "6px",
-                                                            cursor: "pointer",
-                                                        }}
-                                                    >
-                                                        <Plus size={17} />
-                                                    </button>
-                                                </div>
-                                            </label>
-                                            <label>
-                                                <p>
-                                                    Quantity for Serial Number #
-                                                    {index + 1}
-                                                </p>
-                                                <input
-                                                    type="number"
-                                                    name={`quantity-${index}`}
-                                                    value={
-                                                        form.quantity[index] ||
-                                                        ""
-                                                    }
-                                                    onChange={(e) =>
-                                                        handleQuantityChange(
-                                                            e,
-                                                            index
-                                                        )
-                                                    }
-                                                    max={40}
-                                                />
-                                            </label>
-                                            {form.serialNumber.length > 1 && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        handleDeleteSerialQ(
-                                                            index
-                                                        )
-                                                    }
-                                                    className="delete-serialQ-btn"
-                                                    aria-label={`Delete serial number ${
-                                                        index + 1
-                                                    }`}
-                                                    style={{
-                                                        backgroundColor:
-                                                            "#dc3545", // Bootstrap danger red
-                                                        border: "1px solid #dc3545",
-                                                        color: "#fff",
-                                                        padding: "7px",
-                                                        borderRadius: "6px",
-                                                        cursor: "pointer",
-                                                        display: "flex",
-                                                        alignItems: "center",
-                                                        justifyContent:
-                                                            "center",
-                                                    }}
-                                                    onMouseOver={(e) => {
-                                                        e.currentTarget.style.backgroundColor =
-                                                            "#c82333";
-                                                        e.currentTarget.style.borderColor =
-                                                            "#bd2130";
-                                                    }}
-                                                    onMouseOut={(e) => {
-                                                        e.currentTarget.style.backgroundColor =
-                                                            "#dc3545";
-                                                        e.currentTarget.style.borderColor =
-                                                            "#dc3545";
-                                                    }}
-                                                >
-                                                    <Trash size={19} />
-                                                </button>
-                                            )}
                                         </div>
                                     ))}
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={handleAddSerialQ}
-                                    className="add-serialQ-btn"
-                                >
-                                    Add New Serial
-                                </button>
-                            </div>
-                            <div className="submit-btn">
-                                <button type="submit">
-                                    {loading.inventory ? (
-                                        <>
-                                            <p>Adding...</p>
-                                        </>
-                                    ) : (
-                                        "Add to inventory"
-                                    )}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                )}
 
-                {/* Products Section - Add new model */}
-                {activeSegment === "products" && (
-                    <div className="add-information-container">
-                        <form onSubmit={handleModelSubmit}>
-                            <div className="input-container">
-                                <h1>Add New Product Model 📱</h1>
-                                <div className="input-container-box">
-                                    <label>
-                                        <p>PRODUCT NAME</p>
-                                        <input
-                                            type="text"
-                                            name="productName"
-                                            placeholder="PRODUCT NAME..."
-                                            value={modelForm.productName}
-                                            onChange={(e) =>
-                                                setModelForm({
-                                                    ...modelForm,
-                                                    productName: e.target.value,
-                                                })
-                                            }
-                                        />
-                                    </label>
-                                    <label>
-                                        <p>BARCODE ID</p>
-                                        <input
-                                            type="text"
-                                            name="barcodeId"
-                                            placeholder="BARCODE ID..."
-                                            value={modelForm.barcodeId}
-                                            onChange={(e) =>
-                                                setModelForm({
-                                                    ...modelForm,
-                                                    barcodeId: e.target.value,
-                                                })
-                                            }
-                                        />
-                                    </label>
+                                <div className="flex flex-col sm:flex-row gap-4">
+                                    <select
+                                        id="backupFormat"
+                                        className="px-4 py-4 bg-base-200/50 border border-neutral rounded-2xl text-base-content focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
+                                    >
+                                        <option className='bg-base-200' value="csv">CSV Format</option>
+                                        <option className='bg-base-200' value="pdf">PDF Format</option>
+                                    </select>
+                                    <button
+                                        onClick={handleBackup}
+                                        className="px-8 py-4 bg-neutral hover:bg-neutral/90 text-white font-semibold rounded-2xl transition-all duration-200 transform hover:scale-105"
+                                    >
+                                        Download Backup
+                                    </button>
                                 </div>
                             </div>
-                            <div className="submit-btn model">
-                                <button type="submit">
-                                    {modelLoading ? (
-                                        <>
-                                            <p>Adding...</p>
-                                        </>
-                                    ) : (
-                                        "Add New Model"
-                                    )}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                )}
+                        </div>
+                    )}
 
-                {/* Search Section - Lookup Function */}
-                {activeSegment === "search" && (
-                    <div className="lookup-container">
-                        <h1>SEARCH FOR YOUR SERIAL NUMBER 🔎</h1>
-                        <input
-                            type="text"
-                            value={searchSerial}
-                            onChange={(e) =>
-                                setSearchSerial(e.target.value.toUpperCase())
-                            }
-                            placeholder="Enter serial number"
-                        />
-                        <button onClick={handleSearch}>
-                            {loading.search ? (
-                                <>
-                                    <p>Searching...</p>
-                                </>
-                            ) : (
-                                "Search"
-                            )}
-                        </button>
-                        {searchResult ? (
-                            <div className="search-results">
-                                <h3>
-                                    Details for {searchResult.serial_number}
-                                </h3>
-                                <p>
-                                    <strong>Item:</strong> {searchResult.item}
-                                </p>
-                                <p className="search-customer">
-                                    <strong>Customer:</strong>{" "}
-                                    {searchResult.customer}
-                                </p>
-                                <p>
-                                    <strong>Invoice No:</strong>{" "}
-                                    {searchResult.invoice_no}
-                                </p>
-                                <p>
-                                    <strong>Invoice Date:</strong>{" "}
-                                    {searchResult.invoice_date}
-                                </p>
-                            </div>
-                        ) : (
-                            searchSerial && (
-                                <p className="search-error">
-                                    {loading
-                                        ? ""
-                                        : `No result found for ${searchSerial}`}
-                                </p>
-                            )
-                        )}
-                    </div>
-                )}
+                    {/* Table Section */}
+                    {activeSegment === "table" && (
+                        <div className="bg-base-100/50 backdrop-blur-xl rounded-3xl p-8 border border-base-300/20 shadow-xl">
+                            <h2 className="text-2xl font-semibold text-base-content mb-8">
+                                Inventory Table
+                            </h2>
 
-                {/* Backups Section */}
-                {activeSegment === "backups" && (
-                    <div className="backup-container">
-                        <h1>Backup Your Inventory Data 💾</h1>
-                        <div className="backup-controls">
-                            <div className="tb-info-row">
-                                <p className="total-products">
-                                    Total Entries: {inventory.length}
-                                </p>
-                            </div>
-                            <div className="choose-customer">
-                                {["customer"].map((field) => (
-                                    <label key={field}>
-                                        <p>CUSTOMER NAME</p>
-                                        <input
-                                            type="text"
-                                            name={field}
-                                            placeholder={`CUSTOMER NAME...`}
-                                            value={backupCustomer}
-                                            onChange={
-                                                handleCustomerBackupChange
-                                            }
-                                            onBlur={() =>
-                                                setTimeout(() => {
-                                                    setActiveField(null);
-                                                }, 100)
-                                            }
-                                        />
+                            <div className="flex flex-col sm:flex-row gap-6 mb-8">
+                                <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-4">
+                                    <div className="text-center">
+                                        <div className="text-2xl font-bold text-green-500">
+                                            {inventory.length}
+                                        </div>
+                                        <div className="text-base-content/60 text-sm">
+                                            Total Entries
+                                        </div>
+                                    </div>
+                                </div>
 
-                                        {activeField === field &&
-                                            dropDownData[field]?.length > 0 && (
-                                                <ul className="dropdown">
-                                                    {dropDownData[field]
-                                                        .slice(0, 5)
-                                                        .map((item, index) => (
-                                                            <li
-                                                                key={index}
-                                                                onClick={() =>
-                                                                    handleSelectItemBackup(
-                                                                        field,
-                                                                        item
-                                                                    )
-                                                                }
-                                                            >
-                                                                {item}
-                                                            </li>
-                                                        ))}
-                                                </ul>
-                                            )}
+                                <div className="flex-1">
+                                    <label className="block text-sm font-medium text-base-content/80 mb-3">
+                                        Limit Rows
                                     </label>
-                                ))}
+                                    <input
+                                        type="number"
+                                        placeholder="Number of rows to display"
+                                        min={1}
+                                        max={inventory.length}
+                                        className="w-full max-w-xs px-4 py-3 bg-base-200/50 border-2 border-neutral rounded-2xl text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
+                                        onChange={(e) =>
+                                            setFilteredTableLength(
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                </div>
                             </div>
-                            <div className="backup-actions">
-                                <select id="backupFormat">
-                                    <option value="csv">CSV</option>
-                                    <option value="pdf">PDF</option>
-                                </select>
-                                <button onClick={handleBackup}>Backup</button>
-                            </div>
-                        </div>
-                    </div>
-                )}
 
-                {/* Table Section - Display inventory */}
-                {activeSegment === "table" && (
-                    <div className="table-container">
-                        <h4>All Products 📦</h4>
-                        <div className="tb-info-row">
-                            <p className="total-products">
-                                Total Entries: {inventory.length}
-                            </p>
-                        </div>
-                        <div className="filter-table">
-                            <p>Filter by rows: </p>
-                            <input type="number" placeholder="No of rows" min={1} max={inventory.length} onChange={(e) => setFilteredTableLength(e.target.value)}  />
-                        </div>
-                        <table border="1">
-                            <thead>
-                                <tr>
-                                    <th>Item</th>
-                                    <th>Serial Number</th>
-                                    <th>Customer</th>
-                                    <th>Invoice No</th>
-                                    <th>Invoice Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredTableLength > 0 ? (
-                                    inventory
-                                        .slice()
-                                        .sort(
-                                            (a, b) =>
-                                                new Date(b.invoice_date) -
-                                                new Date(a.invoice_date)
-                                        )
-                                        .slice(0 , filteredTableLength)
-                                        .map((data) => (
-                                            <tr key={data.id}>
-                                                <td>{data.item}</td>
-                                                <td>{data.serial_number}</td>
-                                                <td>{data.customer}</td>
-                                                <td>{data.invoice_no}</td>
-                                                <td>{data.invoice_date}</td>
-                                                <td>
+                            <div className="overflow-x-auto rounded-2xl border border-neutral/30">
+                                <table className="w-full">
+                                    <thead className="bg-base-300 border-b border-neutral/30">
+                                        <tr>
+                                            <th className="px-6 py-4 text-left text-sm font-semibold text-base-content/80">
+                                                Item
+                                            </th>
+                                            <th className="px-6 py-4 text-left text-sm font-semibold text-base-content/80">
+                                                Serial Number
+                                            </th>
+                                            <th className="px-6 py-4 text-left text-sm font-semibold text-base-content/80">
+                                                Customer
+                                            </th>
+                                            <th className="px-6 py-4 text-left text-sm font-semibold text-base-content/80">
+                                                Invoice No
+                                            </th>
+                                            <th className="px-6 py-4 text-left text-sm font-semibold text-base-content/80">
+                                                Invoice Date
+                                            </th>
+                                            <th className="px-6 py-4 text-left text-sm font-semibold text-base-content/80">
+                                                Actions
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-neutral/30">
+                                        {(filteredTableLength > 0
+                                            ? inventory
+                                                  .slice()
+                                                  .sort(
+                                                      (a, b) =>
+                                                          new Date(
+                                                              b.invoice_date
+                                                          ) -
+                                                          new Date(
+                                                              a.invoice_date
+                                                          )
+                                                  )
+                                                  .slice(0, filteredTableLength)
+                                            : inventory
+                                                  .slice()
+                                                  .sort(
+                                                      (a, b) =>
+                                                          new Date(
+                                                              b.invoice_date
+                                                          ) -
+                                                          new Date(
+                                                              a.invoice_date
+                                                          )
+                                                  )
+                                        ).map((data) => (
+                                            <tr
+                                                key={data.id}
+                                                className="hover:bg-base-200/30 transition-colors duration-150"
+                                            >
+                                                <td className="px-6 py-4 text-sm text-base-content">
+                                                    {data.item}
+                                                </td>
+                                                <td className="px-6 py-4 text-sm font-mono text-base-content">
+                                                    {data.serial_number}
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-primary font-medium">
+                                                    {data.customer}
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-base-content">
+                                                    {data.invoice_no}
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-base-content">
+                                                    {data.invoice_date}
+                                                </td>
+                                                <td className="px-6 py-4">
                                                     <button
-                                                        className="del-btn"
                                                         onClick={() =>
                                                             deleteEntry(data.id)
                                                         }
+                                                        className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30 rounded-xl text-sm font-medium transition-all duration-200"
                                                     >
                                                         Delete
                                                     </button>
                                                 </td>
                                             </tr>
-                                        ))
-                                ) : (
-                                    inventory
-                                        .slice()
-                                        .sort(
-                                            (a, b) =>
-                                                new Date(b.invoice_date) -
-                                                new Date(a.invoice_date)
-                                        )
-                                        .slice()
-                                        .map((data) => (
-                                            <tr key={data.id}>
-                                                <td>{data.item}</td>
-                                                <td>{data.serial_number}</td>
-                                                <td>{data.customer}</td>
-                                                <td>{data.invoice_no}</td>
-                                                <td>{data.invoice_date}</td>
-                                                <td>
-                                                    <button
-                                                        className="del-btn"
-                                                        onClick={() =>
-                                                            deleteEntry(data.id)
-                                                        }
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
-        </>
+        </div>
     );
 }
