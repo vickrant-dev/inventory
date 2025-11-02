@@ -485,6 +485,7 @@ export default function App() {
             setLoading((prev) => ({ ...prev, search: false }));
         } else {
             setSearchResult(data.length > 0 ? data[0] : null);
+            setSearchSerial(data.length > 0 ? false : "Not found");
             setLoading((prev) => ({ ...prev, search: false }));
         }
     };
@@ -1056,6 +1057,7 @@ export default function App() {
                                             e.target.value.toUpperCase()
                                         )
                                     }
+                                    onFocus={() => setSearchSerial(false)}
                                     placeholder="Enter serial number to search"
                                     className="flex-1 px-4 py-4 bg-base-200/50 border-2 border-accent/25 rounded-2xl text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50 transition-all duration-200"
                                 />
@@ -1075,7 +1077,7 @@ export default function App() {
                                 </button>
                             </div>
 
-                            {searchResult && !loading.search ? (
+                            {searchResult ? (
                                 <div className="bg-accent/10 border border-accent/30 rounded-2xl p-6">
                                     <h3 className="text-lg font-semibold text-base-content mb-4">
                                         Details for {searchResult.serial_number}
@@ -1120,7 +1122,7 @@ export default function App() {
                                 !loading.search && (
                                     <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 text-center">
                                         <p className="text-red-500">
-                                            No result found for "{searchSerial}"
+                                            No result found for "{tempSearchSerial}"
                                         </p>
                                     </div>
                                 )
