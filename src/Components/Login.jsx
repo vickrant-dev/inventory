@@ -27,48 +27,62 @@ export default function Login() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-base-300 p-6">
-            <div className="w-full max-w-md animate-fade-in">
-                {/* Login Form */}
-                <div className="bg-base-100/50 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-base-300/20">
-                    <form onSubmit={handleLogin} className="space-y-6">
+            <div className="w-full max-w-md animate-fade-in relative">
+                {/* Liquid Glass Container */}
+                <div
+                    className="relative bg-white/10 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/20"
+                    style={{
+                        // subtle glossy shine using a pseudo element equivalent trick
+                        boxShadow:
+                            "inset 0 0 60px 30px rgba(255, 255, 255, 0.05), 0 10px 30px rgba(0, 0, 0, 0.2)",
+                    }}
+                >
+                    <form
+                        onSubmit={handleLogin}
+                        className="space-y-6 relative z-10"
+                    >
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-base-content/80 mb-3">
+                                <label className="block text-sm font-medium text-white/80 mb-3">
                                     Username
                                 </label>
                                 <input
                                     type="text"
                                     placeholder="Enter your username"
-                                    className="w-full px-4 py-4 bg-base-200/50 border border-neutral-700 rounded-2xl text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
+                                    className="w-full px-4 py-4 bg-white/20 border border-white/30 rounded-2xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
                                     value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
+                                    onChange={(e) =>
+                                        setUsername(e.target.value)
+                                    }
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-base-content/80 mb-3">
+                                <label className="block text-sm font-medium text-white/80 mb-3">
                                     Password
                                 </label>
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     placeholder="Enter your password"
-                                    className="w-full px-4 py-4 bg-base-200/50 border border-neutral-700 rounded-2xl text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200 bor"
+                                    className="w-full px-4 py-4 bg-white/20 border border-white/30 rounded-2xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
                                     value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
+                                    onChange={(e) =>
+                                        setPassword(e.target.value)
+                                    }
                                 />
 
                                 <div className="flex items-center mt-4">
                                     <input
                                         type="checkbox"
                                         id="showPassword"
-                                        className="w-4 h-4 text-primary bg-base-200 border-base-300 rounded focus:ring-primary/50"
+                                        className="w-4 h-4 text-primary bg-white/20 border-white/30 rounded focus:ring-primary/50"
                                         onChange={() =>
                                             setShowPassword(!showPassword)
                                         }
                                     />
                                     <label
                                         htmlFor="showPassword"
-                                        className="ml-3 text-sm text-base-content/60"
+                                        className="ml-3 text-sm text-white/60 select-none"
                                     >
                                         Show password
                                     </label>
@@ -78,7 +92,7 @@ export default function Login() {
 
                         <button
                             type="submit"
-                            className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-4 px-6 rounded-2xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl cursor-pointer"
+                            className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-4 px-6 rounded-2xl transition-transform duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl cursor-pointer"
                         >
                             Sign In
                         </button>

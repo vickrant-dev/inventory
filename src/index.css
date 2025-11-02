@@ -115,7 +115,6 @@
 }
 
 /* forest */
-
 @plugin "daisyui/theme" {
   name: "forest";
   default: false;
