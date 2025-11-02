@@ -12,11 +12,8 @@ import {
     Download,
     Table,
     LogOut,
-    LoaderIcon,
-    LoaderCircle,
 } from "lucide-react";
 import { supabase } from "../utils/supabase";
-import InventoryTable from './InventoryTable';
 
 export default function App() {
     const [form, setForm] = useState({
@@ -29,7 +26,6 @@ export default function App() {
     });
     const [inventory, setInventory] = useState([]);
     const [searchSerial, setSearchSerial] = useState("");
-    const [tempSearchSerial, setTempSearchSerial] = useState("");
     const [searchResult, setSearchResult] = useState(null);
 
     const [dropDownData, setDropDownData] = useState({});
@@ -38,7 +34,6 @@ export default function App() {
     const [loading, setLoading] = useState({
         inventory: false,
         search: false,
-        table: false,
     });
 
     const [activeSegment, setActiveSegment] = useState("customer");
@@ -468,8 +463,8 @@ export default function App() {
     };
 
     const handleSearch = async () => {
-        if (!tempSearchSerial.trim()) {
-            setTempSearchSerial(null);
+        if (!searchSerial.trim()) {
+            setSearchResult(null);
             return;
         }
 
@@ -478,7 +473,7 @@ export default function App() {
         const { data, error } = await supabase
             .from("inventorynew")
             .select("*")
-            .eq("serial_number", tempSearchSerial.trim());
+            .eq("serial_number", searchSerial.trim());
 
         if (error) {
             console.error("Error searching for serial number:", error.message);
@@ -504,160 +499,199 @@ export default function App() {
     };
 
     const backupCSV = () => {
-        let numRows = inventory.length;
+        let numRows = Number.parseInt(
+            prompt(
+                `Enter the number of rows to back up (max: ${inventory.length}):`
+            ),
+            10
+        );
 
-        // Dynamically filter, sort, and select
-        const selectedEntries = inventory
-            .filter((entry) => {
-                // Filter by customer if specified
-                const customerMatch = backupCustomer
-                    ? entry.customer.toLowerCase() === backupCustomer.toLowerCase()
-                    : true;
-
-                // Filter by date if specified
-                const dateMatch = fromDate && toDate
-                    ? new Date(entry.invoice_date) >= new Date(fromDate) &&
-                    new Date(entry.invoice_date) <= new Date(toDate)
-                    : true;
-
-                return customerMatch && dateMatch;
-            })
-            .sort((a, b) => new Date(b.invoice_date) - new Date(a.invoice_date))
-            .slice(0, numRows);
-
-
-        if (!fromDate || !toDate) {
-            numRows = Number.parseInt(
-                prompt(
-                    `Enter the number of rows to back up (max: ${inventory.length}):`
-                ),
-                10
-            );
-    
-            if (isNaN(numRows) || numRows <= 0) {
-                alert("Please enter a valid number.");
-                return;
-            }
-            numRows = Math.min(numRows, inventory.length);
-        }
-
-        // Handle empty results
-        if (selectedEntries.length === 0) {
-            alert("No records found for the selected criteria.");
+        if (isNaN(numRows) || numRows <= 0) {
+            alert("Please enter a valid number.");
             return;
         }
 
-        // Generate CSV
-        let csvContent = "data:text/csv;charset=utf-8,";
-        csvContent += "Item,Serial Number,Customer,Invoice No,Invoice Date\n";
+        numRows = Math.min(numRows, inventory.length);
 
-        selectedEntries.forEach((row) => {
-            csvContent += `${row.item},${row.serial_number},${row.customer},${row.invoice_no},${row.invoice_date}\n`;
-        });
+        if (backupCustomer === "") {
+            const sortedInventory = inventory.slice().sort((a, b) => {
+                return new Date(b.invoice_date) - new Date(a.invoice_date);
+            });
 
-        // Trigger download
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute(
-            "href",
-            encodedUri
-        );
+            const selectedEntries = sortedInventory.slice(0, numRows);
 
-        const customerPart = backupCustomer || "all";
-        link.setAttribute(
-            "download",
-            `inventory_backup_${customerPart}_${selectedEntries.length}_rows.csv`
-        );
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent +=
+                "Item,Serial Number,Customer,Invoice No,Invoice Date\n";
 
+            selectedEntries.forEach((row) => {
+                csvContent += `${row.item},${row.serial_number},${row.customer},${row.invoice_no},${row.invoice_date}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute(
+                "download",
+                `inventory_backup_${numRows}_rows.csv`
+            );
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else {
+            const filteredInventory = inventory.filter(
+                (entry) =>
+                    entry.customer.toLowerCase() ===
+                    backupCustomer.toLowerCase()
+            );
+
+            if (filteredInventory.length === 0) {
+                alert(`No records found for customer "${backupCustomer}".`);
+                return;
+            }
+
+            const sortedInventory = filteredInventory.slice().sort((a, b) => {
+                return new Date(b.invoice_date) - new Date(a.invoice_date);
+            });
+
+            const selectedEntries = sortedInventory.slice(0, numRows);
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent +=
+                "Item,Serial Number,Customer,Invoice No,Invoice Date\n";
+
+            selectedEntries.forEach((row) => {
+                csvContent += `${row.item},${row.serial_number},${row.customer},${row.invoice_no},${row.invoice_date}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute(
+                "download",
+                `inventory_backup_${backupCustomer}_${numRows}_rows.csv`
+            );
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
     };
 
     const backupPDF = () => {
-        let numRows = inventory.length;
+        let numRows = Number.parseInt(
+            prompt(
+                `Enter the number of rows to back up (max: ${inventory.length}):`
+            ),
+            10
+        );
 
-        // Dynamically filter, sort, and select
-        const selectedEntries = inventory
-            .filter((entry) => {
-                // Filter by customer if specified
-                const customerMatch = backupCustomer
-                    ? entry.customer.toLowerCase() === backupCustomer.toLowerCase()
-                    : true;
-
-                // Filter by date if specified
-                const dateMatch = fromDate && toDate
-                    ? new Date(entry.invoice_date) >= new Date(fromDate) &&
-                    new Date(entry.invoice_date) <= new Date(toDate)
-                    : true;
-
-                return customerMatch && dateMatch;
-            })
-            .sort((a, b) => new Date(b.invoice_date) - new Date(a.invoice_date))
-            .slice(0, numRows);
-
-
-        if (!fromDate || !toDate) {
-            numRows = Number.parseInt(
-                prompt(
-                    `Enter the number of rows to back up (max: ${inventory.length}):`
-                ),
-                10
-            );
-    
-            if (isNaN(numRows) || numRows <= 0) {
-                alert("Please enter a valid number.");
-                return;
-            }
-            numRows = Math.min(numRows, inventory.length);
-        }
-
-        if (selectedEntries.length === 0) {
-            alert("No records found for the selected criteria.");
+        if (isNaN(numRows) || numRows <= 0) {
+            alert("Please enter a valid number.");
             return;
         }
 
-        // PDF generation
-        const doc = new jsPDF();
-        let y = 20;
-        const marginTop = 10;
-        const pageHeight = doc.internal.pageSize.height;
+        numRows = Math.min(numRows, inventory.length);
 
-        const addHeaders = () => {
-            doc.setFontSize(12);
-            doc.text("Inventory Backup", 14, marginTop);
-            doc.line(10, marginTop + 2, 200, marginTop + 2);
+        if (backupCustomer === "") {
+            const sortedInventory = inventory.slice().sort((a, b) => {
+                return new Date(b.invoice_date) - new Date(a.invoice_date);
+            });
 
-            doc.text("Item", 10, y);
-            doc.text("Serial Number", 50, y);
-            doc.text("Customer", 100, y);
-            doc.text("Invoice No", 150, y);
-            doc.text("Invoice Date", 180, y);
+            const selectedEntries = sortedInventory.slice(0, numRows);
 
-            y += 10;
-        };
+            const doc = new jsPDF();
+            let y = 20;
+            const marginTop = 10;
+            const pageHeight = doc.internal.pageSize.height;
 
-        addHeaders();
+            const addHeaders = () => {
+                doc.setFontSize(12);
+                doc.text("Inventory Backup", 14, marginTop);
+                doc.line(10, marginTop + 2, 200, marginTop + 2);
 
-        selectedEntries.forEach((row) => {
-            if (y + 10 > pageHeight - 10) {
-                doc.addPage();
-                y = marginTop + 10;
-                addHeaders();
+                doc.text("Item", 10, y);
+                doc.text("Serial Number", 50, y);
+                doc.text("Customer", 100, y);
+                doc.text("Invoice No", 150, y);
+                doc.text("Invoice Date", 180, y);
+
+                y += 10;
+            };
+
+            addHeaders();
+
+            selectedEntries.forEach((row, index) => {
+                if (y + 10 > pageHeight - 10) {
+                    doc.addPage();
+                    y = marginTop + 10;
+                    addHeaders();
+                }
+
+                doc.text(row.item, 10, y);
+                doc.text(row.serial_number, 50, y);
+                doc.text(row.customer, 100, y);
+                doc.text(row.invoice_no, 150, y);
+                doc.text(row.invoice_date, 180, y);
+                y += 10;
+            });
+
+            doc.save(`inventory_backup_${backupCustomer}_${numRows}_rows.pdf`);
+        } else {
+            const filteredInventory = inventory.filter(
+                (entry) =>
+                    entry.customer.toLowerCase() ===
+                    backupCustomer.toLowerCase()
+            );
+
+            if (filteredInventory.length === 0) {
+                alert(`No records found for customer "${backupCustomer}".`);
+                return;
             }
 
-            doc.text(row.item, 10, y);
-            doc.text(row.serial_number, 50, y);
-            doc.text(row.customer, 100, y);
-            doc.text(row.invoice_no, 150, y);
-            doc.text(row.invoice_date, 180, y);
-            y += 10;
-        });
+            const sortedInventory = filteredInventory.slice().sort((a, b) => {
+                return new Date(b.invoice_date) - new Date(a.invoice_date);
+            });
 
-        // Save file
-        const customerPart = backupCustomer || "all";
-        doc.save(`inventory_backup_${customerPart}_${selectedEntries.length}_rows.pdf`);
+            const selectedEntries = sortedInventory.slice(0, numRows);
 
+            const doc = new jsPDF();
+            let y = 20;
+            const marginTop = 10;
+            const pageHeight = doc.internal.pageSize.height;
+
+            const addHeaders = () => {
+                doc.setFontSize(12);
+                doc.text("Inventory Backup", 14, marginTop);
+                doc.line(10, marginTop + 2, 200, marginTop + 2);
+
+                doc.text("Item", 10, y);
+                doc.text("Serial Number", 50, y);
+                doc.text("Customer", 100, y);
+                doc.text("Invoice No", 150, y);
+                doc.text("Invoice Date", 180, y);
+
+                y += 10;
+            };
+
+            addHeaders();
+
+            selectedEntries.forEach((row, index) => {
+                if (y + 10 > pageHeight - 10) {
+                    doc.addPage();
+                    y = marginTop + 10;
+                    addHeaders();
+                }
+
+                doc.text(row.item, 10, y);
+                doc.text(row.serial_number, 50, y);
+                doc.text(row.customer, 100, y);
+                doc.text(row.invoice_no, 150, y);
+                doc.text(row.invoice_date, 180, y);
+                y += 10;
+            });
+
+            doc.save(`inventory_backup_${backupCustomer}_${numRows}_rows.pdf`);
+        }
     };
 
     const segments = [
@@ -667,15 +701,6 @@ export default function App() {
         { id: "backups", label: "Backups", icon: Download },
         { id: "table", label: "Table", icon: Table },
     ];
-
-    // DATE PICKER
-    const [fromDate, setFromDate] = useState("");
-    const [toDate, setToDate] = useState("");
-
-    const handleFromChange = (e) => setFromDate(e.target.value);
-    const handleToChange = (e) => setToDate(e.target.value);
-
-    const todayDate = new Date().toISOString().split('T')[0];
 
     return (
         <div className="min-h-screen bg-base-300">
@@ -710,23 +735,12 @@ export default function App() {
                             return (
                                 <button
                                     key={segment.id}
-                                    onClick={() => {
-                                        setActiveSegment(segment.id)
-                                        setLoading((prev) => ({
-                                            ...prev,
-                                            table: true,
-                                        }));
-                                        setTimeout(() => {
-                                            setLoading((prev) => ({
-                                                ...prev,
-                                                table: false,
-                                            }))
-                                        }, 1000);
-                                    }}
-                                    className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-medium transition-all duration-200 ${activeSegment === segment.id
+                                    onClick={() => setActiveSegment(segment.id)}
+                                    className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-medium transition-all duration-200 ${
+                                        activeSegment === segment.id
                                             ? "bg-primary text-white shadow-lg transform scale-[1.02]"
                                             : "text-base-content/70 hover:text-base-content hover:bg-base-100"
-                                        }`}
+                                    }`}
                                 >
                                     <Icon size={18} />
                                     <span>{segment.label}</span>
@@ -865,9 +879,10 @@ export default function App() {
                                                                         index
                                                                     )
                                                                 }
-                                                                placeholder={`Serial number ${index + 1
-                                                                    }`}
-                                                                className="w-full flex-1 px-4 py-4 bg-accent/10 border border-accent/30 rounded-2xl text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50 transition-all duration-200"
+                                                                placeholder={`Serial number ${
+                                                                    index + 1
+                                                                }`}
+                                                                className="flex-1 px-4 py-4 bg-accent/10 border border-accent/30 rounded-2xl text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50 transition-all duration-200"
                                                             />
                                                             <button
                                                                 type="button"
@@ -906,7 +921,7 @@ export default function App() {
                                                             type="number"
                                                             value={
                                                                 form.quantity[
-                                                                index
+                                                                    index
                                                                 ] || ""
                                                             }
                                                             onChange={(e) =>
@@ -922,18 +937,18 @@ export default function App() {
                                                     </div>
                                                     {form.serialNumber.length >
                                                         1 && (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() =>
-                                                                    handleDeleteSerialQ(
-                                                                        index
-                                                                    )
-                                                                }
-                                                                className="px-5 py-5 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30 rounded-2xl transition-all duration-200 w-fit"
-                                                            >
-                                                                <Trash size={18} />
-                                                            </button>
-                                                        )}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                handleDeleteSerialQ(
+                                                                    index
+                                                                )
+                                                            }
+                                                            className="px-5 py-5 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30 rounded-2xl transition-all duration-200 w-fit"
+                                                        >
+                                                            <Trash size={18} />
+                                                        </button>
+                                                    )}
                                                 </div>
                                             )
                                         )}
@@ -1050,9 +1065,9 @@ export default function App() {
                             <div className="flex flex-col sm:flex-row gap-4 mb-8">
                                 <input
                                     type="text"
-                                    value={tempSearchSerial}
+                                    value={searchSerial}
                                     onChange={(e) =>
-                                        setTempSearchSerial(
+                                        setSearchSerial(
                                             e.target.value.toUpperCase()
                                         )
                                     }
@@ -1075,7 +1090,7 @@ export default function App() {
                                 </button>
                             </div>
 
-                            {searchResult && !loading.search ? (
+                            {searchResult ? (
                                 <div className="bg-accent/10 border border-accent/30 rounded-2xl p-6">
                                     <h3 className="text-lg font-semibold text-base-content mb-4">
                                         Details for {searchResult.serial_number}
@@ -1136,7 +1151,7 @@ export default function App() {
                             </h2>
 
                             <div className="space-y-8">
-                                <div className="flex w-fit bg-green-500/10 border border-green-500/30 rounded-2xl p-6">
+                                <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-6">
                                     <div className="text-center">
                                         <div className="text-3xl font-bold text-green-500">
                                             {inventory.length}
@@ -1148,7 +1163,6 @@ export default function App() {
                                 </div>
 
                                 <div className="relative">
-                                    {/* FILTER BY CUSTOMER */}
                                     {["customer"].map((field) => (
                                         <div key={field}>
                                             <label className="block text-sm font-medium text-base-content/80 mb-3">
@@ -1158,7 +1172,7 @@ export default function App() {
                                                 type="text"
                                                 name={field}
                                                 placeholder="Enter customer name to filter"
-                                                className="w-full max-w-sm px-4 py-4 bg-base-200/50 border-2 border-neutral rounded-2xl text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
+                                                className="w-full max-w-md px-4 py-4 bg-base-200/50 border-2 border-neutral rounded-2xl text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
                                                 value={backupCustomer}
                                                 onChange={
                                                     handleCustomerBackupChange
@@ -1169,14 +1183,14 @@ export default function App() {
                                                             setActiveField(
                                                                 null
                                                             ),
-                                                        1000
+                                                        100
                                                     )
                                                 }
                                             />
                                             {activeField === field &&
                                                 dropDownData[field]?.length >
-                                                0 && (
-                                                    <div className="absolute top-full left-0 right-0 max-w-sm z-50 mt-2 bg-base-300 backdrop-blur-xl border border-base-300/30 rounded-2xl shadow-2xl overflow-hidden">
+                                                    0 && (
+                                                    <div className="absolute top-full left-0 right-0 max-w-md z-50 mt-2 bg-base-300 backdrop-blur-xl border border-base-300/30 rounded-2xl shadow-2xl overflow-hidden">
                                                         {dropDownData[field]
                                                             .slice(0, 5)
                                                             .map(
@@ -1207,45 +1221,7 @@ export default function App() {
                                     ))}
                                 </div>
 
-                                <label>
-                                    <p className='mb-3 text-sm'>Filter by date (Optional)</p>
-                                </label>
-                                <div className="flex flex-col gap-4 max-w-sm w-full">
-                                    <div>
-                                        <label className="label">
-                                            <span className="label-text text-sm">From</span>
-                                        </label>
-                                        <input
-                                            type="date"
-                                            value={fromDate}
-                                            onChange={handleFromChange}
-                                            className="rounded-xl input input-bordered w-full"
-                                            max={todayDate}
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="label">
-                                            <span className="label-text text-sm">To</span>
-                                        </label>
-                                        <input
-                                            type="date"
-                                            value={toDate}
-                                            onChange={handleToChange}
-                                            className="rounded-xl input input-bordered w-full"
-                                            min={fromDate} // ensures "to" can't be earlier than "from"
-                                            max={todayDate}
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <p className="text-sm">
-                                            Selected range: {<span className='font-bold'>{fromDate}</span> || "-"} to {<span className='font-bold'>{toDate}</span> || "-"}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="max-w-sm w-full flex flex-col sm:flex-row gap-4">
+                                <div className="flex flex-col sm:flex-row gap-4">
                                     <select
                                         id="backupFormat"
                                         className="px-4 py-4 bg-base-200/50 border border-neutral rounded-2xl text-base-content focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
@@ -1255,7 +1231,7 @@ export default function App() {
                                     </select>
                                     <button
                                         onClick={handleBackup}
-                                        className="w-full px-8 py-4 bg-neutral hover:bg-neutral/90 text-white font-semibold rounded-2xl transition-all duration-200 transform hover:scale-105"
+                                        className="px-8 py-4 bg-neutral hover:bg-neutral/90 text-white font-semibold rounded-2xl transition-all duration-200 transform hover:scale-105"
                                     >
                                         Download Backup
                                     </button>
@@ -1271,7 +1247,7 @@ export default function App() {
                                 Inventory Table
                             </h2>
 
-                            <div className="flex mb-8">
+                            <div className="flex flex-col sm:flex-row gap-6 mb-8">
                                 <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-4">
                                     <div className="text-center">
                                         <div className="text-2xl font-bold text-green-500">
@@ -1282,14 +1258,110 @@ export default function App() {
                                         </div>
                                     </div>
                                 </div>
+
+                                <div className="flex-1">
+                                    <label className="block text-sm font-medium text-base-content/80 mb-3">
+                                        Limit Rows
+                                    </label>
+                                    <input
+                                        type="number"
+                                        placeholder="Number of rows to display"
+                                        min={1}
+                                        max={inventory.length}
+                                        className="w-full max-w-xs px-4 py-3 bg-base-200/50 border-2 border-neutral rounded-2xl text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
+                                        onChange={(e) =>
+                                            setFilteredTableLength(
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                </div>
                             </div>
 
-                            {/* TABLE */}
-                            {loading.table ? (
-                                <p className='flex items-center gap-2'><LoaderCircle className='animate-spin' /> Loading...</p>
-                            ) : (
-                                <InventoryTable inventory={inventory} deleteEntry={deleteEntry} />
-                            )}
+                            <div className="overflow-x-auto rounded-2xl border border-neutral/30">
+                                <table className="w-full">
+                                    <thead className="bg-base-300 border-b border-neutral/30">
+                                        <tr>
+                                            <th className="px-6 py-4 text-left text-sm font-semibold text-base-content/80">
+                                                Item
+                                            </th>
+                                            <th className="px-6 py-4 text-left text-sm font-semibold text-base-content/80">
+                                                Serial Number
+                                            </th>
+                                            <th className="px-6 py-4 text-left text-sm font-semibold text-base-content/80">
+                                                Customer
+                                            </th>
+                                            <th className="px-6 py-4 text-left text-sm font-semibold text-base-content/80">
+                                                Invoice No
+                                            </th>
+                                            <th className="px-6 py-4 text-left text-sm font-semibold text-base-content/80">
+                                                Invoice Date
+                                            </th>
+                                            <th className="px-6 py-4 text-left text-sm font-semibold text-base-content/80">
+                                                Actions
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-neutral/30">
+                                        {(filteredTableLength > 0
+                                            ? inventory
+                                                  .slice()
+                                                  .sort(
+                                                      (a, b) =>
+                                                          new Date(
+                                                              b.invoice_date
+                                                          ) -
+                                                          new Date(
+                                                              a.invoice_date
+                                                          )
+                                                  )
+                                                  .slice(0, filteredTableLength)
+                                            : inventory
+                                                  .slice()
+                                                  .sort(
+                                                      (a, b) =>
+                                                          new Date(
+                                                              b.invoice_date
+                                                          ) -
+                                                          new Date(
+                                                              a.invoice_date
+                                                          )
+                                                  )
+                                        ).map((data) => (
+                                            <tr
+                                                key={data.id}
+                                                className="hover:bg-base-200/30 transition-colors duration-150"
+                                            >
+                                                <td className="px-6 py-4 text-sm text-base-content">
+                                                    {data.item}
+                                                </td>
+                                                <td className="px-6 py-4 text-sm font-mono text-base-content">
+                                                    {data.serial_number}
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-primary font-medium">
+                                                    {data.customer}
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-base-content">
+                                                    {data.invoice_no}
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-base-content">
+                                                    {data.invoice_date}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <button
+                                                        onClick={() =>
+                                                            deleteEntry(data.id)
+                                                        }
+                                                        className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30 rounded-xl text-sm font-medium transition-all duration-200"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     )}
                 </div>
