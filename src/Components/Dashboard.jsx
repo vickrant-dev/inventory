@@ -55,6 +55,9 @@ export default function App() {
 
     const debounceTimersRef = useRef({});
 
+	const prevLenRef = useRef(form.serialNumber.length);
+	const serialRefs = useRef([]);
+
 	useEffect(() => {
 		const isAuthenticated = localStorage.getItem("isAuthenticated");
 		const loginTime = localStorage.getItem("loginTime");
@@ -72,6 +75,16 @@ export default function App() {
 			navigate("/login");
 		}
 	}, [navigate]);
+
+	useEffect(() => {
+		const len = form.serialNumber.length;
+		if (len > prevLenRef.current) {
+			const index = len - 1;
+			const el = serialRefs.current[index];
+			if (el) el.focus();
+		}
+		prevLenRef.current = len;
+	}, [form.serialNumber.length]);
 
 	const handleLogout = () => {
 		localStorage.removeItem("isAuthenticated");
@@ -373,7 +386,7 @@ export default function App() {
 		// Create a new debounce timer for this index
 		debounceTimersRef.current[index] = setTimeout(() => {
 			processSerialNumber(index, input);
-		}, 2500); // 2.5 seconds
+		}, 1500); // 2.5 seconds
 	};
 
 	const processSerialNumber = async (index, input) => {
@@ -761,15 +774,6 @@ export default function App() {
 					{activeSegment === "customer" && (
 						<div className="space-y-8">
 							<form
-								onSubmit={(e) => {
-									// Prevent submission via Enter key
-									if (e.nativeEvent.submitter === null) {
-										// submitter is null when Enter key triggers submit
-										e.preventDefault();
-										return;
-									}
-									handleConfirmSubmit(e);
-								}}
 								className="space-y-8"
 							>
 								{/* Customer Information */}
@@ -886,6 +890,7 @@ export default function App() {
 															<input
 																type="text"
 																value={serial}
+																ref={(el) => (serialRefs.current[index] = el)}
 																onChange={(e) =>
 																	handleSerialNumberChange(
 																		e,
@@ -978,7 +983,13 @@ export default function App() {
 								{/* Submit Button */}
 								<div className="flex justify-center">
 									<button
-										type="submit"
+										type="button"
+										onClick={(e) => {
+											if (e.key === "Enter") {
+												return;
+											}
+											handleConfirmSubmit(e);
+										}}
 										disabled={loading.inventory}
 										className="px-12 py-4 bg-red-500 hover:bg-red-500/90 disabled:bg-red-500/50 text-white font-semibold rounded-2xl transition-all duration-200 transform hover:scale-105 disabled:scale-100 shadow-lg"
 									>
