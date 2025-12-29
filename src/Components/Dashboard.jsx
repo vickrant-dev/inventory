@@ -1,5 +1,5 @@
 import "../index.css";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -378,15 +378,19 @@ export default function App() {
 			return { ...prevForm, serialNumber: newSerialNumbers };
 		});
 
-		// Clear any existing debounce timer for this index
-		if (debounceTimersRef.current[index]) {
-			clearTimeout(debounceTimersRef.current[index]);
+		if (method === "barcode") {
+			console.log("Method: ", method);
+			// clear previous timer for this index
+			if (debounceTimersRef.current[index]) {
+				clearTimeout(debounceTimersRef.current[index]);
+			}
+			// set new debounce timer (1000ms)
+			debounceTimersRef.current[index] = setTimeout(() => {
+				processSerialNumber(index, input);
+				delete debounceTimersRef.current[index];
+			}, 1000);
+			return;
 		}
-
-		// Create a new debounce timer for this index
-		debounceTimersRef.current[index] = setTimeout(() => {
-			processSerialNumber(index, input);
-		}, 1000); // 2.5 seconds
 	};
 
 	const processSerialNumber = async (index, input) => {
@@ -708,6 +712,15 @@ export default function App() {
 
 	const todayDate = new Date().toISOString().split("T")[0];
 
+	// SCANNING METHODS
+	const [method, setMethod] = useState('barcode');
+
+    const handleRadioChange = (e) => {
+        const value = e.target.value;
+        setMethod(value);
+        if (onchange) onChange(value);
+    }
+
 	return (
 		<div className="min-h-screen bg-[#001A26]">
 			<div className="max-w-7xl mx-auto px-6 py-8">
@@ -773,9 +786,7 @@ export default function App() {
 					{/* Customer Section */}
 					{activeSegment === "customer" && (
 						<div className="space-y-8">
-							<form
-								className="space-y-8"
-							>
+							<form className="space-y-8">
 								{/* Customer Information */}
 								<div className="bg-base-100/50 backdrop-blur-sm rounded-3xl p-8 border border-base-300/20 shadow-xl relative z-9">
 									<h2 className="text-2xl font-semibold text-base-content mb-8">
@@ -874,6 +885,35 @@ export default function App() {
 									<h2 className="text-2xl font-semibold text-base-content mb-8">
 										Serial Numbers
 									</h2>
+									<div className="mb-10">
+										<p>Choose Scanning Method: </p>
+										<div
+											role="radiogroup"
+											className="flex items-center gap-3 mt-2"
+											aria-label="Choose Scanning Method"
+										>
+											<label className="flex items-center gap-2">
+												<input
+													type="radio"
+													name="scanMethod"
+													value="barcode"
+													checked={method === "barcode"}
+													onChange={handleRadioChange}
+												/>
+												Barcode
+											</label>
+											<label className="flex items-center gap-2">
+												<input
+													type="radio"
+													name="scanMethod"
+													value="keyboard"
+													checked={method === "keyboard"}
+													onChange={handleRadioChange}
+												/>
+												Keyboard
+											</label>
+										</div>
+									</div>
 									<div className="space-y-6">
 										{form.serialNumber.map(
 											(serial, index) => (
@@ -890,7 +930,11 @@ export default function App() {
 															<input
 																type="text"
 																value={serial}
-																ref={(el) => (serialRefs.current[index] = el)}
+																ref={(el) =>
+																	(serialRefs.current[
+																		index
+																	] = el)
+																}
 																onChange={(e) =>
 																	handleSerialNumberChange(
 																		e,
@@ -906,7 +950,7 @@ export default function App() {
 																type="button"
 																onClick={() =>
 																	processSerialNumber(
-																		index
+																		index, serial
 																	)
 																}
 																className="px-4 py-4 bg-accent hover:bg-accent/90 text-white rounded-2xl transition-all duration-200 transform hover:scale-105"
