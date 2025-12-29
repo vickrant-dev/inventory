@@ -386,7 +386,7 @@ export default function App() {
 		// Create a new debounce timer for this index
 		debounceTimersRef.current[index] = setTimeout(() => {
 			processSerialNumber(index, input);
-		}, 1500); // 2.5 seconds
+		}, 1000); // 2.5 seconds
 	};
 
 	const processSerialNumber = async (index, input) => {
@@ -709,7 +709,7 @@ export default function App() {
 	const todayDate = new Date().toISOString().split("T")[0];
 
 	return (
-		<div className="min-h-screen bg-base-300">
+		<div className="min-h-screen bg-[#001A26]">
 			<div className="max-w-7xl mx-auto px-6 py-8">
 				{/* Header */}
 				<div className="flex items-center justify-between mb-12">
